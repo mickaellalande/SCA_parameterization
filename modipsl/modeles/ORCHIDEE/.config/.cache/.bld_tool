@@ -1,0 +1,39 @@
+ARFLAGS      rs
+FPPKEYS      XIOS CPP_OMP CPP_PARA CPP_FLUSH
+LD_LIBLINK   -l
+MAKEFLAGS    
+AR           ar
+GRAPHIC_DIFF xxdiff
+LDFLAGS       -qopenmp  -O3 -L./ -lnetcdf -lnetcdff -lstdc++ -L/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -L/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/lib -lxios -lioipsl -lnetcdf
+LD_OUTPUT    -o
+CC_DEFINE    -D
+LD           mpiifort
+REMOTE_SHELL remsh
+MAKE_SILENT  -s
+CPPFLAGS     -P -traditional -I./  -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/inc
+CC           cc
+LD_LIBSEARCH -L
+INTERFACE    file
+CPP_DEFINE   -D
+FC_INCLUDE   -I
+CC_INCLUDE   -I
+CPP          cpp
+MAKE_JOB     -j
+CFLAGS       
+FC           mpiifort
+SHELL        /bin/bash
+FC_COMPILE   -c
+FC_OUTPUT    -o
+FPP_DEFINE   -D
+CPP_INCLUDE  -I
+MIRROR       rsync
+MAKE         gmake
+CPPKEYS      
+GENINTERFACE none
+FPP          cpp
+CC_COMPILE   -c
+FFLAGS       -integer-size 32 -real-size 64 -align all -fp-model precise -O3  -qopenmp -I./  -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/inc
+FC_DEFINE    -D
+FPP_INCLUDE  -I
+FPPFLAGS     -P -traditional -I./  -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/inc
+CC_OUTPUT    -o

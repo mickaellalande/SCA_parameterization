@@ -1,5 +1,7 @@
 # To implement new Snow Cover Area (SCA) parameterization in LMDZ/ORCHIDEE
 
+Test
+
 The goal is to add the standard deviation in the relationship between Snow Water Equivalent (SWE) and Snow Cover Area (SCA), that is not taken into account so far. The aim would be to reduce the bias over the High Mountain of Asia (HMA) of IPSL-CM6A-LR.
 
 https://docs.google.com/document/d/1gK69TtH3feRFu4q0MjmuouC8xG6Gcth6Qe9cbeY5vIM/edit?usp=sharing

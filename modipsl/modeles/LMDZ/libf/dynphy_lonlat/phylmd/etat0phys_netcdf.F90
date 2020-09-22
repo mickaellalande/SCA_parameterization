@@ -340,7 +340,7 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
   ELSE
 !--- CALL OROGRAPHY MODULE TO COMPUTE FIELDS
     CALL grid_noro(lon_rad,lat_rad,relief_hi,lon_in,lat_in,phis,zmea0,zstd0,   &
-                   zmea0_not_filtered,zstd0_not_filteredzsig0,zgam0,zthe0,     &
+                   zmea0_not_filtered,zstd0_not_filtered,zsig0,zgam0,zthe0,     &
                    zpic0,zval0,masque)
   END IF
   phis = phis * 9.81
@@ -350,10 +350,10 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
 !--- PUT QUANTITIES TO PHYSICAL GRID
   CALL gr_dyn_fi(1,iml,jml,klon,zmea0,zmea); DEALLOCATE(zmea0)
   CALL gr_dyn_fi(1,iml,jml,klon,zstd0,zstd); DEALLOCATE(zstd0)
-  CALL gr_dyn_fi(1,iml,jml,klon,zmea0_not_filtered,zmea_not_filtered);         &
-                                             DEALLOCATE(zmea0_not_filtered)
-  CALL gr_dyn_fi(1,iml,jml,klon,zstd0_not_filtered,zstd_not_filtered);         &
-                                             DEALLOCATE(zstd0_not_filtered)
+  CALL gr_dyn_fi(1,iml,jml,klon,zmea0_not_filtered,zmea_not_filtered)
+  DEALLOCATE(zmea0_not_filtered)
+  CALL gr_dyn_fi(1,iml,jml,klon,zstd0_not_filtered,zstd_not_filtered)
+  DEALLOCATE(zstd0_not_filtered)
   CALL gr_dyn_fi(1,iml,jml,klon,zsig0,zsig); DEALLOCATE(zsig0)
   CALL gr_dyn_fi(1,iml,jml,klon,zgam0,zgam); DEALLOCATE(zgam0)
   CALL gr_dyn_fi(1,iml,jml,klon,zthe0,zthe); DEALLOCATE(zthe0)

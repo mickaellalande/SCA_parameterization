@@ -39,7 +39,7 @@
 
 !      character(len=6), SAVE :: ocean
 !!!!!!$OMP THREADPRIVATE(ocean)
-!      logical, SAVE :: ok_veget 
+!      logical, SAVE :: ok_veget
 !!!!!!$OMP THREADPRIVATE(ok_veget)
       REAL, ALLOCATABLE, SAVE :: falb1(:,:), falb2(:,:)
 !$OMP THREADPRIVATE(falb1, falb2)
@@ -64,8 +64,16 @@
 !
 ! Parametres de l'Orographie a l'Echelle Sous-Maille (OESM):
 !
+! /!\ zmea, zstd, zpic, zval, zxtzx, zxtzy and zytzy are filtered with a moving
+! averaged over 9 points (see grid_noro_m.F90: MVA9). For including the std in
+! the snow cover area parameterization (in ORCHIDEE/src_sechiba/condveg.f90),
+! zstd and zmea are kept in the non averaged variables zmea_not_filtered and
+! zstd_not_filtered /!\
+!
       REAL, ALLOCATABLE, SAVE :: zmea(:), zstd(:), zsig(:), zgam(:)
 !$OMP THREADPRIVATE(zmea, zstd, zsig, zgam)
+      REAL, ALLOCATABLE, SAVE :: zmea_not_filtered(:), zstd_not_filtered(:)
+!$OMP THREADPRIVATE(zmea_not_filtered, zstd_not_filtered)
       REAL, ALLOCATABLE, SAVE :: zthe(:), zpic(:), zval(:)
 !$OMP THREADPRIVATE(zthe, zpic, zval)
 !     REAL tabcntr0(100)
@@ -99,7 +107,7 @@
       REAL, ALLOCATABLE, SAVE :: delta_tsurf(:,:) ! Surface temperature difference inside-outside cold pool
 !$OMP THREADPRIVATE(delta_tsurf)
 !>nrlmd
-      REAL, ALLOCATABLE, SAVE :: zmax0(:), f0(:) ! 
+      REAL, ALLOCATABLE, SAVE :: zmax0(:), f0(:) !
 !$OMP THREADPRIVATE(zmax0,f0)
       REAL, ALLOCATABLE, SAVE :: sig1(:,:), w01(:,:)
 !$OMP THREADPRIVATE(sig1,w01)
@@ -139,7 +147,7 @@
 !$OMP THREADPRIVATE(wsumSTD,phisumSTD)
       REAL,ALLOCATABLE,SAVE :: qsumSTD(:,:,:), rhsumSTD(:,:,:)
 !$OMP THREADPRIVATE(qsumSTD,rhsumSTD)
-      REAL,ALLOCATABLE,SAVE :: tnondef(:,:,:) 
+      REAL,ALLOCATABLE,SAVE :: tnondef(:,:,:)
 !$OMP THREADPRIVATE(tnondef)
       REAL,ALLOCATABLE,SAVE :: uvsumSTD(:,:,:)
 !$OMP THREADPRIVATE(uvsumSTD)
@@ -160,7 +168,7 @@
       REAL,ALLOCATABLE,SAVE :: T2sumSTD(:,:,:)
 !$OMP THREADPRIVATE(T2sumSTD)
       REAL,ALLOCATABLE,SAVE :: O3sumSTD(:,:,:), O3daysumSTD(:,:,:)
-!$OMP THREADPRIVATE(O3sumSTD,O3daysumSTD) 
+!$OMP THREADPRIVATE(O3sumSTD,O3daysumSTD)
 !IM begin
       REAL,ALLOCATABLE,SAVE :: wlevSTD(:,:), ulevSTD(:,:), vlevSTD(:,:)
 !$OMP THREADPRIVATE(wlevSTD,ulevSTD,vlevSTD)
@@ -182,7 +190,7 @@
 !$OMP THREADPRIVATE(wTSTD)
       REAL,ALLOCATABLE,SAVE :: u2STD(:,:)
 !$OMP THREADPRIVATE(u2STD)
-      REAL,ALLOCATABLE,SAVE :: v2STD(:,:) 
+      REAL,ALLOCATABLE,SAVE :: v2STD(:,:)
 !$OMP THREADPRIVATE(v2STD)
       REAL,ALLOCATABLE,SAVE :: T2STD(:,:)
 !$OMP THREADPRIVATE(T2STD)
@@ -216,11 +224,11 @@
       REAL,ALLOCATABLE,SAVE :: ftd(:,:)
 !$OMP THREADPRIVATE(ftd)
 ! fqd : convective moistening due to unsaturated downdraughts
-      REAL,ALLOCATABLE,SAVE :: fqd(:,:)     
+      REAL,ALLOCATABLE,SAVE :: fqd(:,:)
 !$OMP THREADPRIVATE(fqd)
 !34EK
 ! -- Variables de controle de ALE et ALP
-!ALE : Energie disponible pour soulevement : utilisee par la 
+!ALE : Energie disponible pour soulevement : utilisee par la
 !      convection d'Emanuel pour le declenchement et la regulation
       REAL,ALLOCATABLE,SAVE :: ALE(:)
 !$OMP THREADPRIVATE(ALE)
@@ -267,7 +275,7 @@
 !$OMP THREADPRIVATE(wake_fip)
 !
 !jyg<
-! variables related to the spitting of the PBL between wake and 
+! variables related to the spitting of the PBL between wake and
 ! off-wake regions.
 ! wake_delta_pbl_TKE : difference TKE_w - TKE_x
       REAL,ALLOCATABLE,SAVE :: wake_delta_pbl_TKE(:,:,:)
@@ -276,13 +284,13 @@
 !
 ! pfrac_impa : Produits des coefs lessivage impaction
 ! pfrac_nucl : Produits des coefs lessivage nucleation
-! pfrac_1nucl: Produits des coefs lessi nucl (alpha = 1) 
+! pfrac_1nucl: Produits des coefs lessi nucl (alpha = 1)
       REAL,ALLOCATABLE,SAVE :: pfrac_impa(:,:), pfrac_nucl(:,:)
 !$OMP THREADPRIVATE(pfrac_impa,pfrac_nucl)
       REAL,ALLOCATABLE,SAVE :: pfrac_1nucl(:,:)
 !$OMP THREADPRIVATE(pfrac_1nucl)
 !
-      REAL,ALLOCATABLE,SAVE :: total_rain(:), nday_rain(:)  
+      REAL,ALLOCATABLE,SAVE :: total_rain(:), nday_rain(:)
 !$OMP THREADPRIVATE(total_rain,nday_rain)
 ! albsol1: albedo du sol total pour SW visible
 ! albsol2: albedo du sol total pour SW proche IR
@@ -298,7 +306,7 @@
       REAL, ALLOCATABLE, SAVE:: wo(:, :, :)
       ! column-density of ozone in a layer, in kilo-Dobsons
       ! Third dimension has size 1 or 2.
-      ! "wo(:, :, 1)" is for the average day-night field, 
+      ! "wo(:, :, 1)" is for the average day-night field,
       ! "wo(:, :, 2)" is for daylight time.
       !$OMP THREADPRIVATE(wo)
 
@@ -314,7 +322,7 @@
 ! cool_volc : refroidissement infrarouge du au volcanisme
       REAL,ALLOCATABLE,SAVE :: clwcon0(:,:),rnebcon0(:,:)
 !$OMP THREADPRIVATE(clwcon0,rnebcon0)
-      REAL,ALLOCATABLE,SAVE :: heat(:,:)   
+      REAL,ALLOCATABLE,SAVE :: heat(:,:)
 !$OMP THREADPRIVATE(heat)
       REAL,ALLOCATABLE,SAVE :: heat0(:,:)
 !$OMP THREADPRIVATE(heat0)
@@ -322,7 +330,7 @@
 !$OMP THREADPRIVATE(cool)
       REAL,ALLOCATABLE,SAVE :: cool0(:,:)
 !$OMP THREADPRIVATE(cool0)
-      REAL,ALLOCATABLE,SAVE :: heat_volc(:,:)   
+      REAL,ALLOCATABLE,SAVE :: heat_volc(:,:)
 !$OMP THREADPRIVATE(heat_volc)
       REAL,ALLOCATABLE,SAVE :: cool_volc(:,:)
 !$OMP THREADPRIVATE(cool_volc)
@@ -449,7 +457,7 @@ include "clesphys.h"
       ALLOCATE(treedrg(klon,klev,nbsrf))
       ALLOCATE(falb1(klon,nbsrf))
       ALLOCATE(falb2(klon,nbsrf))
-!albedo SB >>> 
+!albedo SB >>>
       ALLOCATE(falb_dir(klon,nsw,nbsrf),falb_dif(klon,nsw,nbsrf))
       ALLOCATE(chl_con(klon))
 !albedo SB <<<
@@ -459,6 +467,7 @@ include "clesphys.h"
       ALLOCATE(radsol(klon))
       ALLOCATE(swradcorr(klon))
       ALLOCATE(zmea(klon), zstd(klon), zsig(klon), zgam(klon))
+      ALLOCATE(zmea_not_filtered(klon), zstd_not_filtered(klon))
       ALLOCATE(zthe(klon), zpic(klon), zval(klon))
 
       ALLOCATE(rugoro(klon))
@@ -564,11 +573,11 @@ include "clesphys.h"
          ! read_climoz == 2
          ALLOCATE(wo(klon,klev, 2))
       end if
-      
+
       ALLOCATE(clwcon0(klon,klev),rnebcon0(klon,klev))
-      ALLOCATE(heat(klon,klev), heat0(klon,klev)) 
+      ALLOCATE(heat(klon,klev), heat0(klon,klev))
       ALLOCATE(cool(klon,klev), cool0(klon,klev))
-      ALLOCATE(heat_volc(klon,klev), cool_volc(klon,klev)) 
+      ALLOCATE(heat_volc(klon,klev), cool_volc(klon,klev))
       ALLOCATE(topsw(klon), toplw(klon))
       ALLOCATE(sollwdown(klon), sollwdownclr(klon))
       ALLOCATE(toplwdown(klon), toplwdownclr(klon))
@@ -627,6 +636,7 @@ include "clesphys.h"
       deallocate(treedrg)
       deallocate(rain_fall, snow_fall, solsw, sollw, radsol, swradcorr)
       deallocate(zmea, zstd, zsig, zgam)
+      deallocate(zmea_not_filtered, zstd_not_filtered)
       deallocate(zthe, zpic, zval)
       deallocate(rugoro, t_ancien, q_ancien, clwcon, rnebcon)
       deallocate(qs_ancien, ql_ancien)
@@ -702,9 +712,9 @@ include "clesphys.h"
 !albedo SB <<<
       deallocate(wo)
       deallocate(clwcon0,rnebcon0)
-      deallocate(heat, heat0) 
+      deallocate(heat, heat0)
       deallocate(cool, cool0)
-      deallocate(heat_volc, cool_volc) 
+      deallocate(heat_volc, cool_volc)
       deallocate(topsw, toplw)
       deallocate(sollwdown, sollwdownclr)
       deallocate(gustiness)
@@ -740,7 +750,7 @@ include "clesphys.h"
       deallocate(ccm)
       if (ok_gwd_rando) deallocate(du_gwd_rando)
       if (.not. ok_hines .and. ok_gwd_rando) deallocate(du_gwd_front)
-       
+
 !!! nrlmd le 10/04/2012
       deallocate(ale_bl_trig)
 !!! fin nrlmd le 10/04/2012

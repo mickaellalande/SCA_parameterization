@@ -13,7 +13,7 @@ MODULE etat0phys
 !            'ST'     : Surface temperature
 !            'CDSW'   : Soil moisture
 !         "start_init_orog" for variables contained in file "Relief.nc":
-!            'RELIEF' : High resolution orography 
+!            'RELIEF' : High resolution orography
 !
 !    * The land mask and corresponding weights can be:
 !      1) computed using the ocean mask from the ocean model (to ensure ocean
@@ -43,7 +43,7 @@ MODULE etat0phys
     sig1, ftsol, clwcon, fm_therm, wake_Cstar,  pctsrf,  entr_therm,radpas, f0,&
     zmax0,fevap, rnebcon,falb_dir, wake_fip,    agesno,  detr_therm, pbl_tke,  &
     phys_state_var_init, ql_ancien, qs_ancien, prlw_ancien, prsw_ancien, &
-    prw_ancien
+    prw_ancien, zmea_not_filtered, zstd_not_filtered
   USE comconst_mod, ONLY: pi, dtvr
 
   PRIVATE
@@ -135,7 +135,7 @@ SUBROUTINE etat0phys_netcdf(masque, phis)
                    iflag_ratqs,ratqsbas,ratqshaut,tau_ratqs,              &
                    ok_ade,ok_aie,ok_alw,ok_cdnc,ok_volcan,flag_volc_surfstrat,&
                    aerosol_couple, chemistry_couple, flag_aerosol,        &
-                   flag_aerosol_strat,                                    & 
+                   flag_aerosol_strat,                                    &
                    flag_aer_feedback,                                     &
                    new_aod, flag_bc_internal_mixture,                     &
                    bl95_b0, bl95_b1, read_climoz, alp_offset)
@@ -221,14 +221,14 @@ SUBROUTINE etat0phys_netcdf(masque, phis)
   clwcon  = 0.0
   rnebcon = 0.0
   ratqs   = 0.0
-  run_off_lic_0 = 0.0 
+  run_off_lic_0 = 0.0
   rugoro  = 0.0
 
 ! Before phyredem calling, surface modules and values to be saved in startphy.nc
 ! are initialized
 !*******************************************************************************
   dummy            = 1.0
-  pbl_tke(:,:,:)   = 1.e-8 
+  pbl_tke(:,:,:)   = 1.e-8
   zmax0(:)         = 40.
   f0(:)            = 1.e-5
   sig1(:,:)        = 0.
@@ -263,7 +263,8 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
 !===============================================================================
 ! Comment:
 !   This routine launch grid_noro, which computes parameters for SSO scheme as
-!   described in LOTT & MILLER (1997) and LOTT(1999).
+!   described in LOTT & MILLER (1997) and LOTT(1999). And also used for the
+!   snow cover area parameterization in ORCHIDEE/src_sechiba/condveg.f90.
 !   In case the file oroparam is present and the key read_orop is activated,
 !   grid_noro is bypassed and sub-cell parameters are read from the file.
 !===============================================================================
@@ -276,6 +277,15 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
   REAL,    INTENT(INOUT) :: phis(:,:), masque(:,:) ! dim (iml,jml)
 !-------------------------------------------------------------------------------
 ! Local variables:
+! /!\ zmea, zstd, zpic, zval, zxtzx, zxtzy and zytzy are filtered with a moving
+! averaged over 9 points (see grid_noro_m.F90: MVA9). For including the std in
+! the snow cover area parameterization (in ORCHIDEE/src_sechiba/condveg.f90),
+! zstd and zmea are kept in the non averaged variables zmea_not_filtered and
+! zstd_not_filtered /!\
+!
+! zmea0 -> dynamics grid (i+1,j with duplicated longitude and pole points)
+! zmea  -> physics grid (single index from North Pole to South Pole)
+!
   CHARACTER(LEN=256) :: modname
   INTEGER            :: fid, llm_tmp,ttm_tmp, iml,jml, iml_rel,jml_rel, itau(1)
   INTEGER            :: ierr
@@ -283,6 +293,7 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
   REAL, ALLOCATABLE  :: lon_rad(:), lon_ini(:), lon_rel(:,:), relief_hi(:,:)
   REAL, ALLOCATABLE  :: lat_rad(:), lat_ini(:), lat_rel(:,:), tmp_var  (:,:)
   REAL, ALLOCATABLE  :: zmea0(:,:), zstd0(:,:), zsig0(:,:)
+  REAL, ALLOCATABLE  :: zmea0_not_filtered(:,:), zstd0_not_filtered(:,:)
   REAL, ALLOCATABLE  :: zgam0(:,:), zthe0(:,:), zpic0(:,:), zval0(:,:)
 !-------------------------------------------------------------------------------
   modname="start_init_orog"
@@ -315,6 +326,7 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
 
 !--- ALLOCATIONS OF SUB-CELL SCALES QUANTITIES
   ALLOCATE(zmea0(iml,jml),zstd0(iml,jml)) !--- Mean orography and std deviation
+  ALLOCATE(zmea0_not_filtered(iml,jml),zstd0_not_filtered(iml,jml))
   ALLOCATE(zsig0(iml,jml),zgam0(iml,jml)) !--- Slope and nisotropy
   ALLOCATE(zthe0(iml,jml))                !--- Highest slope orientation
   ALLOCATE(zpic0(iml,jml),zval0(iml,jml)) !--- Peaks and valley heights
@@ -323,12 +335,13 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
   OPEN(UNIT=66,FILE=oroparam,STATUS='OLD',IOSTAT=ierr)
   IF(ierr==0.AND.read_orop) THEN
     CLOSE(UNIT=66)
-    CALL read_noro(lon_in,lat_in,oroparam,                                     &
-                   phis,zmea0,zstd0,zsig0,zgam0,zthe0,zpic0,zval0,masque)
+    CALL read_noro(lon_in,lat_in,oroparam,phis,zmea0,zstd0,zmea0_not_filtered, &
+                   zstd0_not_filtered,zsig0,zgam0,zthe0,zpic0,zval0,masque)
   ELSE
 !--- CALL OROGRAPHY MODULE TO COMPUTE FIELDS
-    CALL grid_noro(lon_rad,lat_rad,relief_hi,lon_in,lat_in,                    &
-                   phis,zmea0,zstd0,zsig0,zgam0,zthe0,zpic0,zval0,masque)
+    CALL grid_noro(lon_rad,lat_rad,relief_hi,lon_in,lat_in,phis,zmea0,zstd0,   &
+                   zmea0_not_filtered,zstd0_not_filteredzsig0,zgam0,zthe0,     &
+                   zpic0,zval0,masque)
   END IF
   phis = phis * 9.81
   phis(iml,:) = phis(1,:)
@@ -337,6 +350,10 @@ SUBROUTINE start_init_orog(lon_in,lat_in,phis,masque)
 !--- PUT QUANTITIES TO PHYSICAL GRID
   CALL gr_dyn_fi(1,iml,jml,klon,zmea0,zmea); DEALLOCATE(zmea0)
   CALL gr_dyn_fi(1,iml,jml,klon,zstd0,zstd); DEALLOCATE(zstd0)
+  CALL gr_dyn_fi(1,iml,jml,klon,zmea0_not_filtered,zmea_not_filtered);         &
+                                             DEALLOCATE(zmea0_not_filtered)
+  CALL gr_dyn_fi(1,iml,jml,klon,zstd0_not_filtered,zstd_not_filtered);         &
+                                             DEALLOCATE(zstd0_not_filtered)
   CALL gr_dyn_fi(1,iml,jml,klon,zsig0,zsig); DEALLOCATE(zsig0)
   CALL gr_dyn_fi(1,iml,jml,klon,zgam0,zgam); DEALLOCATE(zgam0)
   CALL gr_dyn_fi(1,iml,jml,klon,zthe0,zthe); DEALLOCATE(zthe0)

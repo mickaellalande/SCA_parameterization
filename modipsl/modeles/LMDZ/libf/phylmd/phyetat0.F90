@@ -18,7 +18,7 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
        wake_deltat, wake_delta_pbl_TKE, delta_tsurf, wake_fip, wake_pe, &
        wake_s, wake_dens, zgam, zmax0, zmea, zpic, zsig, &
        zstd, zthe, zval, ale_bl, ale_bl_trig, alp_bl, u10m, v10m, treedrg, &
-       ale_wake, ale_bl_stat
+       ale_wake, ale_bl_stat, zmea_not_filtered, zstd_not_filtered
 !FC
   USE geometry_mod, ONLY : longitude_deg, latitude_deg
   USE iostart, ONLY : close_startphy, get_field, get_var, open_startphy
@@ -109,7 +109,7 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
   ! co2_ppm : value from the previous time step
   IF (carbon_cycle_tr .OR. carbon_cycle_cpl) THEN
      co2_ppm = tab_cntrl(3)
-     RCO2    = co2_ppm * 1.0e-06  * 44.011/28.97 
+     RCO2    = co2_ppm * 1.0e-06  * 44.011/28.97
      ! ELSE : keep value from .def
   END IF
 
@@ -311,10 +311,10 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
   ENDIF
 
   found=phyetat0_get(1,radsol,"RADS","Solar radiation",0.)
-  found=phyetat0_get(1,fder,"fder","Flux derivative",0.) 
+  found=phyetat0_get(1,fder,"fder","Flux derivative",0.)
 
 
-  ! Lecture de la longueur de rugosite 
+  ! Lecture de la longueur de rugosite
   found=phyetat0_srf(1,z0m,"RUG","Z0m ancien",0.001)
   IF (found) THEN
      z0h(:,1:nbsrf)=z0m(:,1:nbsrf)
@@ -337,7 +337,7 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
     ENDIF
   ELSE
     ! initialize treedrg(), because it will be written in restartphy.nc
-    treedrg(:,:,:) = 0.0 
+    treedrg(:,:,:) = 0.0
   ENDIF
 
   ! Lecture de l'age de la neige:
@@ -427,7 +427,7 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
 !===========================================
 
   IF (type_trac == 'lmdz') THEN
-     DO it=1, nbtr                                                                  
+     DO it=1, nbtr
 !!        iiq=niadv(it+2)                                                           ! jyg
         iiq=niadv(it+nqo)                                                           ! jyg
         found=phyetat0_get(1,trs(:,it),"trs_"//tname(iiq), &
@@ -454,13 +454,16 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
 
 !  prise en compte du relief sous-maille
   found=phyetat0_get(1,zmea,"ZMEA","sub grid orography",0.)
+  found=phyetat0_get(1,zmea_not_filtered,"ZMEA_NOT_FILTERED",                  &
+                     "sub grid orography",0.)
   found=phyetat0_get(1,zstd,"ZSTD","sub grid orography",0.)
+  found=phyetat0_get(1,zstd_not_filtered,"ZSTD_NOT_FILTERED",                  &
+                     "sub grid orography",0.)
   found=phyetat0_get(1,zsig,"ZSIG","sub grid orography",0.)
   found=phyetat0_get(1,zgam,"ZGAM","sub grid orography",0.)
   found=phyetat0_get(1,zthe,"ZTHE","sub grid orography",0.)
   found=phyetat0_get(1,zpic,"ZPIC","sub grid orography",0.)
   found=phyetat0_get(1,zval,"ZVAL","sub grid orography",0.)
-  found=phyetat0_get(1,zmea,"ZMEA","sub grid orography",0.)
   found=phyetat0_get(1,rugoro,"RUGSREL","sub grid orography",0.)
 
 !===========================================
@@ -477,25 +480,25 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
       ELSE
           DO i=1,nslay
             WRITE(str2,'(i2.2)') i
-            found=phyetat0_get(1,tslab(:,i),"tslab"//str2,"tslab",0.)  
+            found=phyetat0_get(1,tslab(:,i),"tslab"//str2,"tslab",0.)
           END DO
       END IF
-      IF (.NOT. found) THEN 
+      IF (.NOT. found) THEN
           PRINT*, "phyetat0: Le champ <tslab> est absent"
           PRINT*, "Initialisation a tsol_oce"
           DO i=1,nslay
               tslab(:,i)=MAX(ftsol(:,is_oce),271.35)
           END DO
-      END IF 
+      END IF
 
       ! Sea ice variables
       IF (version_ocean == 'sicINT') THEN
           found=phyetat0_get(1,tice,"slab_tice","slab_tice",0.)
-          IF (.NOT. found) THEN 
+          IF (.NOT. found) THEN
               PRINT*, "phyetat0: Le champ <tice> est absent"
               PRINT*, "Initialisation a tsol_sic"
                   tice(:)=ftsol(:,is_sic)
-          END IF 
+          END IF
           found=phyetat0_get(1,seaice,"seaice","seaice",0.)
           IF (.NOT. found) THEN
               PRINT*, "phyetat0: Le champ <seaice> est absent"
@@ -506,12 +509,12 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
               END WHERE
           END IF
       END IF !sea ice INT
-  END IF ! Slab        
+  END IF ! Slab
 
   ! on ferme le fichier
   CALL close_startphy
 
-  ! Initialize module pbl_surface_mod 
+  ! Initialize module pbl_surface_mod
 
   CALL pbl_surface_init(fder, snow, qsurf, tsoil)
 
@@ -522,7 +525,7 @@ SUBROUTINE phyetat0 (fichnom, clesphy0, tabcntr0)
 
   CALL init_iophy_new(latitude_deg, longitude_deg)
 
-  ! Initilialize module fonte_neige_mod      
+  ! Initilialize module fonte_neige_mod
   CALL fonte_neige_init(run_off_lic_0)
 
 END SUBROUTINE phyetat0
@@ -537,7 +540,7 @@ FUNCTION phyetat0_get(nlev,field,name,descr,default)
 !===================================================================
 
 USE iostart, ONLY : get_field
-USE dimphy, only: klon 
+USE dimphy, only: klon
 USE print_control_mod, ONLY: lunout
 
 IMPLICIT NONE
@@ -575,7 +578,7 @@ FUNCTION phyetat0_srf(nlev,field,name,descr,default)
 !===================================================================
 
 USE iostart, ONLY : get_field
-USE dimphy, only: klon 
+USE dimphy, only: klon
 USE indice_sol_mod, only: nbsrf
 USE print_control_mod, ONLY: lunout
 
@@ -592,7 +595,7 @@ REAL,DIMENSION(klon,nlev,nbsrf),INTENT(INOUT) :: field
 LOGICAL found,phyetat0_get
 INTEGER nsrf
 CHARACTER*2 str2
-  
+
      IF (nbsrf.GT.99) THEN
         WRITE(lunout,*) "Trop de sous-mailles"
         call abort_physic("phyetat0", "", 1)
@@ -608,4 +611,3 @@ CHARACTER*2 str2
 
 RETURN
 END FUNCTION phyetat0_srf
-

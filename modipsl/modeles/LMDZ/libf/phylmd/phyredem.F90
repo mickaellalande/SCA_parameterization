@@ -15,6 +15,7 @@ SUBROUTINE phyredem (fichnom)
                                 falb_dif, qsol, fevap, radsol, solsw, sollw, &
                                 sollwdown, rain_fall, snow_fall, z0m, z0h,   &
                                 agesno, zmea, zstd, zsig, zgam, zthe, zpic,  &
+                                zmea_not_filtered, zstd_not_filtered,        &
                                 zval, rugoro, t_ancien, q_ancien,            &
                                 prw_ancien, prlw_ancien, prsw_ancien,        &
                                 ql_ancien, qs_ancien,  u_ancien,             &
@@ -68,7 +69,7 @@ SUBROUTINE phyredem (fichnom)
 
   !======================================================================
 
-  ! Get variables which will be written to restart file from module 
+  ! Get variables which will be written to restart file from module
   ! pbl_surface_mod
   CALL pbl_surface_final(fder, snow, qsurf,  tsoil)
 
@@ -124,7 +125,7 @@ SUBROUTINE phyredem (fichnom)
       END WHERE
   END IF
 
-  ! 1. fraction de terre 
+  ! 1. fraction de terre
 
   CALL put_field("FTER", "fraction de continent", pctsrf(:, is_ter))
 
@@ -197,19 +198,24 @@ SUBROUTINE phyredem (fichnom)
 
   CALL put_field_srf1("AGESNO", "Age de la neige", agesno(:,:))
 
-  CALL put_field("ZMEA", "ZMEA", zmea)
+  CALL put_field("ZMEA", "Mean orography (filtered)", zmea)
 
-  CALL put_field("ZSTD", "ZSTD", zstd)
+  CALL put_field("ZMEA_NOT_FILTERED", "Mean orography", zmea_not_filtered)
 
-  CALL put_field("ZSIG", "ZSIG", zsig)
+  CALL put_field("ZSTD", "Standard deviation of orography (filtered)", zstd)
 
-  CALL put_field("ZGAM", "ZGAM", zgam)
+  CALL put_field("ZSTD_NOT_FILTERED", "Standard deviation of orography",       &
+                 zstd_not_filtered)
 
-  CALL put_field("ZTHE", "ZTHE", zthe)
+  CALL put_field("ZSIG", "Slope of orography", zsig)
 
-  CALL put_field("ZPIC", "ZPIC", zpic)
+  CALL put_field("ZGAM", "Anysotropy of orography", zgam)
 
-  CALL put_field("ZVAL", "ZVAL", zval)
+  CALL put_field("ZTHE", "Small axis orientation of orography", zthe)
+
+  CALL put_field("ZPIC", "Maximum altitude (filtered)", zpic)
+
+  CALL put_field("ZVAL", "Minimum altitude (filtered)", zval)
 
   CALL put_field("RUGSREL", "RUGSREL", rugoro)
 

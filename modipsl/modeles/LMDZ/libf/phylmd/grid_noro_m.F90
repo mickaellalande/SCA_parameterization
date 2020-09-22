@@ -13,13 +13,15 @@ CONTAINS
 
 !-------------------------------------------------------------------------------
 !
-SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
+SUBROUTINE grid_noro(xd, yd, zd, x, y, zphi, zmea, zstd, zmea_not_filtered,    &
+                     zstd_not_filtered, zsig, zgam, zthe, zpic, zval, mask)
 !
 !-------------------------------------------------------------------------------
 ! Author: F. Lott (see also Z.X. Li, A. Harzallah et L. Fairhead)
 !-------------------------------------------------------------------------------
 ! Purpose: Compute the Parameters of the SSO scheme as described in LOTT &MILLER
-!         (1997) and LOTT(1999).
+!         (1997) and LOTT(1999). And also used for the snow cover area
+!         parameterization in ORCHIDEE/src_sechiba/condveg.f90.
 !-------------------------------------------------------------------------------
 ! Comments:
 !  * Target points are on a rectangular grid:
@@ -30,7 +32,7 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
 !    The means over this region are calculated from USN data, ponderated by a
 !    weight proportional to the surface occupated by the data inside the model
 !    gridpoint area. In most circumstances, this weight is the ratio between the
-!    surfaces of the USN gridpoint area and the model gridpoint area. 
+!    surfaces of the USN gridpoint area and the model gridpoint area.
 !
 !           (c)
 !        ----d-----
@@ -49,12 +51,18 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   IMPLICIT NONE
 !-------------------------------------------------------------------------------
 ! Arguments:
+! /!\ zmea, zstd, zpic, zval, zxtzx, zxtzy and zytzy are filtered with a moving
+! averaged over 9 points (see MVA9). For including the std in the snow cover
+! area parameterization (in ORCHIDEE/src_sechiba/condveg.f90), zstd and zmea are
+! kept in the non averaged variables zmea_not_filtered and zstd_not_filtered /!\
   REAL, INTENT(IN)  :: xd(:), yd(:)  !--- INPUT  COORDINATES     (imdp) (jmdp)
   REAL, INTENT(IN)  :: zd(:,:)       !--- INPUT  FIELD           (imdp,jmdp)
   REAL, INTENT(IN)  :: x(:), y(:)    !--- OUTPUT COORDINATES     (imar+1) (jmar)
   REAL, INTENT(OUT) :: zphi(:,:)     !--- GEOPOTENTIAL           (imar+1,jmar)
   REAL, INTENT(OUT) :: zmea(:,:)     !--- MEAN OROGRAPHY         (imar+1,jmar)
   REAL, INTENT(OUT) :: zstd(:,:)     !--- STANDARD DEVIATION     (imar+1,jmar)
+  REAL, INTENT(OUT) :: zmea_not_filtered(:,:)     !---           (imar+1,jmar)
+  REAL, INTENT(OUT) :: zstd_not_filtered(:,:)     !---           (imar+1,jmar)
   REAL, INTENT(OUT) :: zsig(:,:)     !--- SLOPE                  (imar+1,jmar)
   REAL, INTENT(OUT) :: zgam(:,:)     !--- ANISOTROPY             (imar+1,jmar)
   REAL, INTENT(OUT) :: zthe(:,:)     !--- SMALL AXIS ORIENTATION (imar+1,jmar)
@@ -85,9 +93,11 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   imdp=assert_eq(SIZE(xd),SIZE(zd,1),TRIM(modname)//" imdp")
   jmdp=assert_eq(SIZE(yd),SIZE(zd,2),TRIM(modname)//" jmdp")
   imar=assert_eq([SIZE(x),SIZE(zphi,1),SIZE(zmea,1),SIZE(zstd,1),SIZE(zsig,1), &
+                          SIZE(zmea_not_filtered,1),SIZE(zstd_not_filtered,1), &
                           SIZE(zgam,1),SIZE(zthe,1),SIZE(zpic,1),SIZE(zval,1), &
                           SIZE(mask,1)],TRIM(modname)//" imar")-1
   jmar=assert_eq([SIZE(y),SIZE(zphi,2),SIZE(zmea,2),SIZE(zstd,2),SIZE(zsig,2), &
+                          SIZE(zmea_not_filtered,2),SIZE(zstd_not_filtered,2), &
                           SIZE(zgam,2),SIZE(zthe,2),SIZE(zpic,2),SIZE(zval,2), &
                           SIZE(mask,2)],TRIM(modname)//" jmar")
 !  IF(imar/=iim)   CALL abort_physic(TRIM(modname),'imar/=iim'  ,1)
@@ -167,7 +177,7 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   ALLOCATE(num_lan(imar+1,jmar)); num_lan(:,:)=0.
   DO ii = 1, imar+1
     DO jj = 1, jmar
-      DO j = 2,jmdp+1 
+      DO j = 2,jmdp+1
         zlenx=zleny*COS(yusn(j))
         zdeltax=zdeltay*COS(yusn(j))
         weighy=(xincr+AMIN1(c(jj)-yusn(j),yusn(j)-d(jj)))*rad
@@ -223,13 +233,16 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
 !--- FIRST FILTER, MOVING AVERAGE OVER 9 POINTS.
 !-------------------------------------------------------------------------------
   zphi(:,:)=zmea(:,:)                           ! GK211005 (CG) UNSMOOTHED TOPO
+  zmea_not_filtered(:,:)=zmea(:,:)
+  zstd_not_filtered(:,:))zstd(:,:)
 
   CALL MVA9(zmea);  CALL MVA9(zstd);  CALL MVA9(zpic);  CALL MVA9(zval)
   CALL MVA9(zxtzx); CALL MVA9(zxtzy); CALL MVA9(zytzy)
 
 !--- MASK BASED ON GROUND MAXIMUM, 10% THRESHOLD. (SURFACE PARAMS MEANINGLESS)
   WHERE(weight(:,:)==0.0.OR.mask<0.1)
-    zphi(:,:)=0.0; zmea(:,:)=0.0; zpic(:,:)=0.0; zval(:,:)=0.0; zstd(:,:)=0.0
+    zphi(:,:)=0.0; zmea(:,:)=0.0; zpic(:,:)=0.0; zval(:,:)=0.0; zstd(:,:)=0.0; &
+    zmea_not_filtered(:,:)=0.0; zstd_not_filtered(:,:)=0.0
   END WHERE
   DO ii = 1, imar
     DO jj = 1, jmar
@@ -254,20 +267,24 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
     zsig(:,:)=0.0; zgam(:,:)=0.0; zthe(:,:)=0.0
   END WHERE
 
-  WRITE(lunout,*)'  MEAN ORO:' ,MAXVAL(zmea)
-  WRITE(lunout,*)'  ST. DEV.:' ,MAXVAL(zstd)
-  WRITE(lunout,*)'  PENTE:'    ,MAXVAL(zsig)
-  WRITE(lunout,*)'  ANISOTROP:',MAXVAL(zgam)
-  WRITE(lunout,*)'  ANGLE:'    ,MINVAL(zthe),MAXVAL(zthe)
-  WRITE(lunout,*)'  pic:'      ,MAXVAL(zpic)
-  WRITE(lunout,*)'  val:'      ,MAXVAL(zval)
-      
+  WRITE(lunout,*)'  MEAN ORO:'             ,MAXVAL(zmea)
+  WRITE(lunout,*)'  MEAN ORO NOT FILTERED:',MAXVAL(zmea_not_filtered)
+  WRITE(lunout,*)'  ST. DEV.:'             ,MAXVAL(zstd)
+  WRITE(lunout,*)'  ST. DEV. NOT FILTERED:',MAXVAL(zstd_not_filtered)
+  WRITE(lunout,*)'  PENTE:'                ,MAXVAL(zsig)
+  WRITE(lunout,*)'  ANISOTROP:'            ,MAXVAL(zgam)
+  WRITE(lunout,*)'  ANGLE:'                ,MINVAL(zthe),MAXVAL(zthe)
+  WRITE(lunout,*)'  pic:'                  ,MAXVAL(zpic)
+  WRITE(lunout,*)'  val:'                  ,MAXVAL(zval)
+
 !--- Values at redundant longitude
   zmea(imar+1,:)=zmea(1,:)
+  zmea_not_filtered(imar+1,:)=zmea_not_filtered(1,:)
   zphi(imar+1,:)=zphi(1,:)
   zpic(imar+1,:)=zpic(1,:)
   zval(imar+1,:)=zval(1,:)
   zstd(imar+1,:)=zstd(1,:)
+  zstd_not_filtered(imar+1,:)=zstd_not_filtered(1,:)
   zsig(imar+1,:)=zsig(1,:)
   zgam(imar+1,:)=zgam(1,:)
   zthe(imar+1,:)=zthe(1,:)
@@ -275,20 +292,28 @@ SUBROUTINE grid_noro(xd,yd,zd,x,y,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
 !--- Values at north pole
   zweinor  =SUM(weight(1:imar,1))
   zmea(:,1)=SUM(weight(1:imar,1)*zmea(1:imar,1))/zweinor
+  zmea_not_filtered(:,1)=SUM(weight(1:imar,1)*zmea_not_filtered(1:imar,1))/    &
+                                                                         zweinor
   zphi(:,1)=SUM(weight(1:imar,1)*zphi(1:imar,1))/zweinor
   zpic(:,1)=SUM(weight(1:imar,1)*zpic(1:imar,1))/zweinor
   zval(:,1)=SUM(weight(1:imar,1)*zval(1:imar,1))/zweinor
   zstd(:,1)=SUM(weight(1:imar,1)*zstd(1:imar,1))/zweinor
+  zstd_not_filtered(:,1)=SUM(weight(1:imar,1)*zstd_not_filtered(1:imar,1))/    &
+                                                                         zweinor
   zsig(:,1)=SUM(weight(1:imar,1)*zsig(1:imar,1))/zweinor
   zgam(:,1)=1.; zthe(:,1)=0.
 
 !--- Values at south pole
   zweisud     =SUM(weight(1:imar,jmar),DIM=1)
   zmea(:,jmar)=SUM(weight(1:imar,jmar)*zmea(1:imar,jmar))/zweisud
+  zmea_not_filtered(:,jmar)=                                                   &
+               SUM(weight(1:imar,jmar)*zmea_not_filtered(1:imar,jmar))/zweisud
   zphi(:,jmar)=SUM(weight(1:imar,jmar)*zphi(1:imar,jmar))/zweisud
   zpic(:,jmar)=SUM(weight(1:imar,jmar)*zpic(1:imar,jmar))/zweisud
   zval(:,jmar)=SUM(weight(1:imar,jmar)*zval(1:imar,jmar))/zweisud
   zstd(:,jmar)=SUM(weight(1:imar,jmar)*zstd(1:imar,jmar))/zweisud
+  zstd_not_filtered(:,jmar)=                                                   &
+               SUM(weight(1:imar,jmar)*zstd_not_filtered(1:imar,jmar))/zweisud
   zsig(:,jmar)=SUM(weight(1:imar,jmar)*zsig(1:imar,jmar))/zweisud
   zgam(:,jmar)=1.; zthe(:,jmar)=0.
 
@@ -305,7 +330,7 @@ SUBROUTINE grid_noro0(xd,yd,zd,x,y,zphi,mask)
 ! Purpose: Extracted from grid_noro to provide geopotential height for dynamics
 !          without any call to physics subroutines.
 !===============================================================================
-  IMPLICIT NONE 
+  IMPLICIT NONE
 !-------------------------------------------------------------------------------
 ! Arguments:
   REAL, INTENT(IN)  :: xd(:), yd(:) !--- INPUT  COORDINATES     (imdp) (jmdp)
@@ -386,7 +411,7 @@ SUBROUTINE grid_noro0(xd,yd,zd,x,y,zphi,mask)
   ALLOCATE(num_lan(imar+1,jmar)); num_lan(:,:)=0.
   DO ii = 1, imar+1
     DO jj = 1, jmar
-      DO j = 2,jmdp+1 
+      DO j = 2,jmdp+1
         zlenx=zleny*COS(yusn(j))
         weighy=(xincr+AMIN1(c(jj)-yusn(j),yusn(j)-d(jj)))*rad
         weighy=AMAX1(0.,AMIN1(weighy,zleny))
@@ -428,7 +453,8 @@ END SUBROUTINE grid_noro0
 
 !-------------------------------------------------------------------------------
 !
-SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
+SUBROUTINE read_noro(x, y, fname, zphi, zmea, zstd, zmea_not_filtered,         &
+                     zstd_not_filtered, zsig, zgam, zthe, zpic, zval, mask)
 !
 !-------------------------------------------------------------------------------
 ! Purpose: Read parameters usually determined with grid_noro from a file.
@@ -436,7 +462,7 @@ SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   USE netcdf, ONLY: NF90_OPEN,  NF90_INQ_DIMID, NF90_INQUIRE_DIMENSION,        &
         NF90_NOERR, NF90_CLOSE, NF90_INQ_VARID, NF90_GET_VAR, NF90_STRERROR,   &
         NF90_NOWRITE
-  IMPLICIT NONE 
+  IMPLICIT NONE
 !-------------------------------------------------------------------------------
 ! Arguments:
   REAL, INTENT(IN)  :: x(:), y(:)    !--- OUTPUT COORDINATES     (imar+1) (jmar)
@@ -444,6 +470,8 @@ SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   REAL, INTENT(OUT) :: zphi(:,:)     !--- GEOPOTENTIAL           (imar+1,jmar)
   REAL, INTENT(OUT) :: zmea(:,:)     !--- MEAN OROGRAPHY         (imar+1,jmar)
   REAL, INTENT(OUT) :: zstd(:,:)     !--- STANDARD DEVIATION     (imar+1,jmar)
+  REAL, INTENT(OUT) :: zmea_not_filtered(:,:)     !---           (imar+1,jmar)
+  REAL, INTENT(OUT) :: zstd_not_filtered(:,:)     !---           (imar+1,jmar)
   REAL, INTENT(OUT) :: zsig(:,:)     !--- SLOPE                  (imar+1,jmar)
   REAL, INTENT(OUT) :: zgam(:,:)     !--- ANISOTROPY             (imar+1,jmar)
   REAL, INTENT(OUT) :: zthe(:,:)     !--- SMALL AXIS ORIENTATION (imar+1,jmar)
@@ -458,9 +486,11 @@ SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   REAL :: xpi, d2r
 !-------------------------------------------------------------------------------
   imar=assert_eq([SIZE(x),SIZE(zphi,1),SIZE(zmea,1),SIZE(zstd,1),SIZE(zsig,1), &
+                          SIZE(zmea_not_filtered,1),SIZE(zstd_not_filtered,1), &
                           SIZE(zgam,1),SIZE(zthe,1),SIZE(zpic,1),SIZE(zval,1), &
                           SIZE(mask,1)],TRIM(modname)//" imar")-1
   jmar=assert_eq([SIZE(y),SIZE(zphi,2),SIZE(zmea,2),SIZE(zstd,2),SIZE(zsig,2), &
+                          SIZE(zmea_not_filtered,2),SIZE(zstd_not_filtered,2), &
                           SIZE(zgam,2),SIZE(zthe,2),SIZE(zpic,2),SIZE(zval,2), &
                           SIZE(mask,2)],TRIM(modname)//" jmar")
   xpi=ACOS(-1.0); d2r=xpi/180.
@@ -475,7 +505,9 @@ SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   IF(.NOT.masque_lu) CALL get_fld('mask',mask)
   CALL get_fld('Zphi',zphi)
   CALL get_fld('Zmea',zmea)
+  CALL get_fld('Zmea_not_filtered',zmea_not_filtered)
   CALL get_fld('mu'  ,zstd)
+  CALL get_fld('mu_not_filtered'  ,zstd_not_filtered)
   CALL get_fld('Zsig',zsig)
   CALL get_fld('Zgam',zgam)
   CALL get_fld('Zthe',zthe)
@@ -483,7 +515,9 @@ SUBROUTINE read_noro(x,y,fname,zphi,zmea,zstd,zsig,zgam,zthe,zpic,zval,mask)
   zval=MAX(0.,zmea-2.*zstd)
   CALL ncerr(NF90_CLOSE(fid))
   WRITE(lunout,*)'  MEAN ORO:' ,MAXVAL(zmea)
+  WRITE(lunout,*)'  MEAN ORO NOT FILTERED:',MAXVAL(zmea_not_filtered)
   WRITE(lunout,*)'  ST. DEV.:' ,MAXVAL(zstd)
+  WRITE(lunout,*)'  ST. DEV. NOT FILTERED:',MAXVAL(zstd_not_filtered)
   WRITE(lunout,*)'  PENTE:'    ,MAXVAL(zsig)
   WRITE(lunout,*)'  ANISOTROP:',MAXVAL(zgam)
   WRITE(lunout,*)'  ANGLE:'    ,MINVAL(zthe),MAXVAL(zthe)
@@ -574,5 +608,3 @@ END SUBROUTINE MVA9
 
 
 END MODULE grid_noro_m
-
-

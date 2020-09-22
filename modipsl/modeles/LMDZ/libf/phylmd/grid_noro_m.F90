@@ -234,14 +234,14 @@ SUBROUTINE grid_noro(xd, yd, zd, x, y, zphi, zmea, zstd, zmea_not_filtered,    &
 !-------------------------------------------------------------------------------
   zphi(:,:)=zmea(:,:)                           ! GK211005 (CG) UNSMOOTHED TOPO
   zmea_not_filtered(:,:)=zmea(:,:)
-  zstd_not_filtered(:,:))zstd(:,:)
+  zstd_not_filtered(:,:)=zstd(:,:)
 
   CALL MVA9(zmea);  CALL MVA9(zstd);  CALL MVA9(zpic);  CALL MVA9(zval)
   CALL MVA9(zxtzx); CALL MVA9(zxtzy); CALL MVA9(zytzy)
 
 !--- MASK BASED ON GROUND MAXIMUM, 10% THRESHOLD. (SURFACE PARAMS MEANINGLESS)
   WHERE(weight(:,:)==0.0.OR.mask<0.1)
-    zphi(:,:)=0.0; zmea(:,:)=0.0; zpic(:,:)=0.0; zval(:,:)=0.0; zstd(:,:)=0.0; &
+    zphi(:,:)=0.0; zmea(:,:)=0.0; zpic(:,:)=0.0; zval(:,:)=0.0; zstd(:,:)=0.0
     zmea_not_filtered(:,:)=0.0; zstd_not_filtered(:,:)=0.0
   END WHERE
   DO ii = 1, imar

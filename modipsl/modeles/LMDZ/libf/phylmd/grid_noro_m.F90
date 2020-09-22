@@ -55,6 +55,7 @@ SUBROUTINE grid_noro(xd, yd, zd, x, y, zphi, zmea, zstd, zmea_not_filtered,    &
 ! averaged over 9 points (see MVA9). For including the std in the snow cover
 ! area parameterization (in ORCHIDEE/src_sechiba/condveg.f90), zstd and zmea are
 ! kept in the non averaged variables zmea_not_filtered and zstd_not_filtered /!\
+!
   REAL, INTENT(IN)  :: xd(:), yd(:)  !--- INPUT  COORDINATES     (imdp) (jmdp)
   REAL, INTENT(IN)  :: zd(:,:)       !--- INPUT  FIELD           (imdp,jmdp)
   REAL, INTENT(IN)  :: x(:), y(:)    !--- OUTPUT COORDINATES     (imar+1) (jmar)
@@ -462,7 +463,7 @@ SUBROUTINE read_noro(x, y, fname, zphi, zmea, zstd, zmea_not_filtered,         &
   USE netcdf, ONLY: NF90_OPEN,  NF90_INQ_DIMID, NF90_INQUIRE_DIMENSION,        &
         NF90_NOERR, NF90_CLOSE, NF90_INQ_VARID, NF90_GET_VAR, NF90_STRERROR,   &
         NF90_NOWRITE
-  IMPLICIT NONE
+  IMPLICIT NONE 
 !-------------------------------------------------------------------------------
 ! Arguments:
   REAL, INTENT(IN)  :: x(:), y(:)    !--- OUTPUT COORDINATES     (imar+1) (jmar)

@@ -124,7 +124,7 @@ CONTAINS
        cdrag, petAcoef, peqAcoef, petBcoef, peqBcoef, &
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow, riverflow, &
-       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m)
+       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, zstd_not_filtered)
 
     IMPLICIT NONE
 
@@ -158,6 +158,7 @@ CONTAINS
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: lon, lat      !! Geographical coordinates
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: zcontfrac     !! Fraction of continent in the grid
     REAL(r_std),DIMENSION (iim,jjm,2), INTENT(in)           :: zresolution   !! resolution in x and y dimensions
+    REAL(r_std),DIMENSION (kjpindex), INTENT(in)      :: zstd_not_filtered   !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(out)            :: z0m            !! Surface roughness
@@ -351,7 +352,8 @@ CONTAINS
          rest_id_stom, hist_id_stom, hist_id_stom_IPCC,                         &
          zcoastal,     zriver,       ztsol_rad,     zvevapp,     zqsurf,        &
          zz0m,         zz0h,         zalbedo,      zfluxsens,     zfluxlat,     &
-         zemis,        znetco2,      zcarblu,      ztemp_sol_new, zcdrag)
+         zemis,        znetco2,      zcarblu,      ztemp_sol_new, zcdrag,       &
+         zstd_not_filtered)
     
     IF (printlev_loc >= 3) WRITE(numout,*) 'After call to sechiba_initialize'
     !
@@ -431,7 +433,7 @@ CONTAINS
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow, riverflow, &
        tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, &
-       coszang)
+       coszang, zstd_not_filtered)
 
     IMPLICIT NONE
 
@@ -466,6 +468,7 @@ CONTAINS
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: lon, lat      !! Geographical coordinates
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: zcontfrac     !! Fraction of continent in the grid
     REAL(r_std),DIMENSION (iim,jjm,2), INTENT(in)           :: zresolution   !! resolution in x and y dimensions
+    REAL(r_std),DIMENSION (kjpindex), INTENT(in)      :: zstd_not_filtered   !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(out)            :: z0m            !! Surface roughness for momemtum
@@ -584,7 +587,7 @@ CONTAINS
          zvevapp, zfluxsens, zfluxlat, zcoastal, zriver, znetco2, zcarblu, &
          ztsol_rad, ztemp_sol_new, zqsurf, zalbedo, zemis, zz0m, zz0h,&
          zveget, zlai, zheight, &
-         rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC ) 
+         rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC, zstd_not_filtered) 
     
     IF (printlev_loc >= 3) WRITE(numout,*) 'After call to sechiba_main'
 
@@ -806,7 +809,7 @@ CONTAINS
        vevapp, fluxsens, fluxlat, coastalflow_cpl, riverflow_cpl, &
        tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, lon_scat_g, lat_scat_g, &
        q2m, t2m, z0h, nvm_out, &
-       field_out_names, field_in_names)
+       field_out_names, field_in_names, zstd_not_filtered)
 
     USE mod_orchidee_para
     IMPLICIT NONE
@@ -844,6 +847,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex,2), INTENT(in)         :: zresolution    !! size of the grid box
     REAL(r_std),DIMENSION (iim_glo,jjm_glo), INTENT(IN)    :: lon_scat_g     !! The scattered values for longitude 
     REAL(r_std),DIMENSION (iim_glo,jjm_glo), INTENT(IN)    :: lat_scat_g     !! The scattered values for latitudes
+    REAL(r_std),DIMENSION (kjpindex), INTENT(IN)    :: zstd_not_filtered     !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (kjpindex), INTENT(out)          :: z0m            !! Surface roughness (momentum)
@@ -1123,7 +1127,7 @@ CONTAINS
          rest_id_stom, hist_id_stom, hist_id_stom_IPCC,                         &
          zcoastal,     zriver,       ztsol_rad,     zvevapp,     zqsurf,        &
          zz0m,          zz0h,        zalbedo,      zfluxsens,     zfluxlat,    zemis,         &
-         znetco2,      zcarblu,      ztemp_sol_new, zcdrag)
+         znetco2,      zcarblu,      ztemp_sol_new, zcdrag, zstd_not_filtered)
     
     IF ( printlev_loc>=3 ) WRITE(numout,*) 'After call to sechiba_initialize'
 
@@ -1267,7 +1271,7 @@ CONTAINS
        tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m,lon_scat_g, lat_scat_g, q2m, t2m, z0h, &
        veget, lai, height, &
        fields_out, fields_in,  &
-       coszang)  
+       coszang, zstd_not_filtered)  
 
     USE mod_orchidee_para
     IMPLICIT NONE
@@ -1306,6 +1310,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex,2), INTENT(in)        :: zresolution     !! size of the grid box
     REAL(r_std),DIMENSION (iim_glo,jjm_glo), INTENT(IN)   :: lon_scat_g      !! The scattered values for longitude 
     REAL(r_std),DIMENSION (iim_glo,jjm_glo), INTENT(IN)   :: lat_scat_g      !! The scattered values for latitude
+    REAL(r_std),DIMENSION (kjpindex), INTENT(IN)   :: zstd_not_filtered      !! Standard deviation of elevation
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (kjpindex), INTENT(out)         :: z0m             !! Surface roughness for momentum
@@ -1478,7 +1483,7 @@ CONTAINS
          zvevapp, zfluxsens, zfluxlat, zcoastal, zriver, znetco2, zcarblu, &
          ztsol_rad, ztemp_sol_new, zqsurf, zalbedo, zemis, zz0m, zz0h, &
          zveget, zlai, zheight, &
-         rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC ) 
+         rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC, zstd_not_filtered) 
 
     IF ( printlev_loc>=3 ) WRITE(numout,*) 'After call to sechiba_main'
 

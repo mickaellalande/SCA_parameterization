@@ -299,7 +299,7 @@ CONTAINS
        rest_id_stom, hist_id_stom, hist_id_stom_IPCC,                     &
        coastalflow,  riverflow,    tsol_rad,     vevapp,       qsurf_out, &
        z0m_out,      z0h_out,      albedo,       fluxsens,     fluxlat,      emis_out,  &
-       netco2flux,   fco2_lu,      temp_sol_new, tq_cdrag)
+       netco2flux,   fco2_lu,      temp_sol_new, tq_cdrag, zstd_not_filtered)
 
 !! 0.1 Input variables
     INTEGER(i_std), INTENT(in)                               :: kjit              !! Time step number (unitless)
@@ -355,6 +355,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: peqBcoef          !! Coefficients B for q from the Planetary 
                                                                                   !! Boundary Layer
     REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: pb                !! Surface pressure (hPa)
+    REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: zstd_not_filtered !! Standard deviation of elevation (m)
 
 
 !! 0.2 Output variables
@@ -471,7 +472,7 @@ CONTAINS
          drysoil_frac, height, snowdz,snowrho, tot_bare_soil, &
          temp_air, pb, u, v, lai, &
          emis, albedo, z0m, z0h, roughheight, &
-         frac_snow_veg,frac_snow_nobio)
+         frac_snow_veg,frac_snow_nobio, zstd_not_filtered)
     
     !! 1.10 Initialization of soil thermodynamics
     
@@ -571,7 +572,8 @@ CONTAINS
        & vevapp, fluxsens, fluxlat, coastalflow, riverflow, netco2flux, fco2_lu, &
        & tsol_rad, temp_sol_new, qsurf_out, albedo, emis_out, z0m_out, z0h_out,&
        & veget_out, lai_out, height_out, &
-       & rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC)
+       & rest_id, hist_id, hist2_id, rest_id_stom, hist_id_stom, hist_id_stom_IPCC, &
+       & zstd_not_filtered)
 
 !! 0.1 Input variables
     
@@ -637,6 +639,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: peqBcoef          !! Coefficients B for q from the Planetary 
                                                                                   !! Boundary Layer
     REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: pb                !! Surface pressure (hPa)
+    REAL(r_std),DIMENSION (kjpindex), INTENT (in)            :: zstd_not_filtered !! Standard deviation of elevation (m)
 
 
 !! 0.2 Output variables
@@ -779,7 +782,7 @@ CONTAINS
          drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
          temp_air, pb, u, v, lai, &
          emis, albedo, z0m, z0h, roughheight, &
-         frac_snow_veg, frac_snow_nobio)
+         frac_snow_veg, frac_snow_nobio, zstd_not_filtered)
 
     !! 7. Compute soil thermodynamics
     IF (hydrol_cwrr) THEN

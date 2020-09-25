@@ -103,7 +103,7 @@ CONTAINS
        drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
        temp_air, pb, u, v, lai, &
        emis, albedo, z0m, z0h, roughheight, &
-       frac_snow_veg,frac_snow_nobio)
+       frac_snow_veg,frac_snow_nobio, zstd_not_filtered)
     
     !! 0. Variable and parameter declaration
     !! 0.1 Input variables  
@@ -134,6 +134,7 @@ CONTAINS
     REAL(r_std),DIMENSION(kjpindex),INTENT(in)       :: u                !! Horizontal wind speed, u direction 
     REAL(r_std),DIMENSION(kjpindex),INTENT(in)       :: v                !! Horizontal wind speed, v direction
     REAL(r_std), DIMENSION(kjpindex,nvm), INTENT(in) :: lai              !! Leaf area index (m2[leaf]/m2[ground])
+    REAL(r_std), DIMENSION(kjpindex), INTENT(in)    :: zstd_not_filtered !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: emis             !! Emissivity
@@ -256,7 +257,7 @@ CONTAINS
 
     !! 3. Calculate the fraction of snow on vegetation and nobio
     CALL condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                           frac_snow_veg, frac_snow_nobio)
+                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered)
 
     !! 4. Calculate roughness height if it was not found in the restart file
     IF ( ALL(z0m(:) == val_exp) .OR. ALL(z0h(:) == val_exp) .OR. ALL(roughheight(:) == val_exp)) THEN
@@ -319,7 +320,7 @@ CONTAINS
        drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
        temp_air, pb, u, v, lai, &
        emis, albedo, z0m, z0h, roughheight, &
-       frac_snow_veg, frac_snow_nobio )
+       frac_snow_veg, frac_snow_nobio, zstd_not_filtered)
 
      !! 0. Variable and parameter declaration
 
@@ -354,6 +355,7 @@ CONTAINS
     REAL(r_std),DIMENSION(kjpindex),INTENT(in)       :: u                !! Horizontal wind speed, u direction 
     REAL(r_std),DIMENSION(kjpindex),INTENT(in)       :: v                !! Horizontal wind speed, v direction
     REAL(r_std), DIMENSION(kjpindex,nvm), INTENT(in) :: lai              !! Leaf area index (m2[leaf]/m2[ground])
+    REAL(r_std), DIMENSION(kjpindex), INTENT(in)    :: zstd_not_filtered !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
 
@@ -379,7 +381,7 @@ CONTAINS
   
     !! 1. Calculate the fraction of snow on vegetation and nobio
     CALL condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                           frac_snow_veg, frac_snow_nobio)
+                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered)
 
     !! 2. Calculate emissivity
     emis(:) = emis_scal
@@ -842,7 +844,7 @@ CONTAINS
 !_ ================================================================================================================================
   
   SUBROUTINE condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                               frac_snow_veg, frac_snow_nobio)
+                               frac_snow_veg, frac_snow_nobio, zstd_not_filtered)
     !! 0. Variable and parameter declaration
     !! 0.1 Input variables
     INTEGER(i_std), INTENT(in)                          :: kjpindex        !! Domain size
@@ -850,6 +852,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex,nnobio), INTENT(in) :: snow_nobio      !! Snow mass on continental ice, lakes, etc. (kg m^{-2})
     REAL(r_std),DIMENSION (kjpindex,nsnow),INTENT(in)   :: snowrho         !! Snow density at each snow layer
     REAL(r_std),DIMENSION (kjpindex,nsnow),INTENT(in)   :: snowdz          !! Snow depth at each snow layer
+    REAL(r_std),DIMENSION (kjpindex),INTENT(in)       :: zstd_not_filtered !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std), DIMENSION(kjpindex), INTENT(out)       :: frac_snow_veg   !! Fraction of snow on vegetation (unitless ratio)
@@ -869,7 +872,8 @@ CONTAINS
           frac_snow_veg(:) = 0.
        ELSEWHERE
           snowrho_ave(:)=snowrho_snowdz(:)/snowdepth(:)
-          frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)/50.)))
+          ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)/50.)))
+          frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)*(1+zstd_not_filtered(:)/200.)/50.)))
        END WHERE
     ELSE
        frac_snow_veg(:) = MIN(MAX(snow(:),zero)/(MAX(snow(:),zero)+snowcri_alb*sn_dens/100.0),un)

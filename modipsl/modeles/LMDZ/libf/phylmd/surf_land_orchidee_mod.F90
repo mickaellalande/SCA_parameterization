@@ -57,6 +57,7 @@ CONTAINS
 #ifdef CPP_VEGET
     USE time_phylmdz_mod, ONLY: itau_phy 
 #endif
+    USE phys_state_var_mod, only: zstd_not_filtered
 !    
 ! Cette routine sert d'interface entre le modele atmospherique et le 
 ! modele de sol continental. Appel a sechiba
@@ -234,7 +235,7 @@ CONTAINS
        ALLOCATE(ktindex(knon))
        IF ( .NOT. ALLOCATED(albedo_keep)) THEN
 !ym          ALLOCATE(albedo_keep(klon))
-!ym bizarre que non alloué en knon precedement
+!ym bizarre que non allouï¿½ en knon precedement
           ALLOCATE(albedo_keep(knon))
           ALLOCATE(zlev(knon))
        ENDIF
@@ -420,7 +421,7 @@ CONTAINS
                precip_rain, precip_snow, lwdown, swnet, swdown, ps, &
                evap, fluxsens, fluxlat, coastalflow, riverflow, &
                tsol_rad, tsurf_new, qsurf, albedo_out, emis_new, z0m_new, &    
-               lon_scat, lat_scat, q2m, t2m, z0h_new, nvm_orch)
+               lon_scat, lat_scat, q2m, t2m, z0h_new, nvm_orch, zstd_not_filtered)
 #endif         
        ENDIF
 
@@ -451,7 +452,7 @@ CONTAINS
             tsol_rad(1:knon), tsurf_new(1:knon), qsurf(1:knon), albedo_out(1:knon,:), emis_new(1:knon), z0m_new(1:knon), &
             lon_scat, lat_scat, q2m, t2m, z0h_new(1:knon),&
             veget(1:knon,:),lai(1:knon,:),height(1:knon,:),&
-            coszang=yrmu0(1:knon))
+            coszang=yrmu0(1:knon), zstd_not_filtered)
 #endif       
     ENDIF
 

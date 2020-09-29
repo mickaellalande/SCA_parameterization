@@ -175,11 +175,6 @@ CONTAINS
 
     !! 0.3 Modified variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(inout)          :: cdrag         !! Cdrag
-    
-    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
-    !! it should not stay here
-    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)   :: zstd_not_filtered   !! Standard deviation of elevation (m)
-    zstd_not_filtered = 0
 
     !! 0.4 Local variables
     REAL(r_std),DIMENSION (kjpindex)                      :: zu            !! Work array to keep u
@@ -218,6 +213,11 @@ CONTAINS
     INTEGER(i_std)                                       :: ier
     INTEGER(i_std)                                       :: itau_sechiba
     INTEGER                                              :: old_fileout   !! old Logical Int for std IO output
+    
+    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
+    !! it should not stay here
+    REAL(r_std),DIMENSION (kjpindex)                :: zstd_not_filtered   !! Standard deviation of elevation (m)
+    zstd_not_filtered = 0
 
 
     IF (printlev >= 2) WRITE(numout,*) 'Start intersurf_initialize_2d'
@@ -473,7 +473,6 @@ CONTAINS
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: lon, lat      !! Geographical coordinates
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: zcontfrac     !! Fraction of continent in the grid
     REAL(r_std),DIMENSION (iim,jjm,2), INTENT(in)           :: zresolution   !! resolution in x and y dimensions
-    REAL(r_std),DIMENSION (kjpindex), INTENT(in)      :: zstd_not_filtered   !! Standard deviation of elevation (m)
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(out)            :: z0m            !! Surface roughness for momemtum
@@ -490,11 +489,6 @@ CONTAINS
 
     !! 0.3 Modified variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(inout)          :: cdrag         !! Cdrag
-    
-    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
-    !! it should not stay here
-    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)   :: zstd_not_filtered   !! Standard deviation of elevation (m)
-    zstd_not_filtered = 0
 
     !! 0.4 Local variables
     REAL(r_std),DIMENSION (kjpindex)                      :: zu            !! Work array to keep u
@@ -537,6 +531,11 @@ CONTAINS
     INTEGER(i_std)                                        :: ier
     INTEGER(i_std)                                        :: itau_sechiba
     INTEGER                                               :: old_fileout   !! old Logical Int for std IO output
+    
+    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
+    !! it should not stay here
+    REAL(r_std),DIMENSION (kjpindex)                :: zstd_not_filtered   !! Standard deviation of elevation (m)
+    zstd_not_filtered = 0
 
     IF (printlev_loc >= 3) WRITE(numout,*) 'Start intersurf_main_2d'
     CALL ipslnlf_p(new_number=numout,old_number=old_fileout)
@@ -817,9 +816,9 @@ CONTAINS
        cdrag, petAcoef, peqAcoef, petBcoef, peqBcoef, &
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow_cpl, riverflow_cpl, &
-       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, lon_scat_g, lat_scat_g, &
+       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, lon_scat_g, lat_scat_g, zstd_not_filtered, &
        q2m, t2m, z0h, nvm_out, &
-       field_out_names, field_in_names, zstd_not_filtered)
+       field_out_names, field_in_names)
 
     USE mod_orchidee_para
     IMPLICIT NONE
@@ -1278,10 +1277,10 @@ CONTAINS
        cdrag, petAcoef, peqAcoef, petBcoef, peqBcoef, &
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow_cpl, riverflow_cpl, &
-       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m,lon_scat_g, lat_scat_g, q2m, t2m, z0h, &
+       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m,lon_scat_g, lat_scat_g, zstd_not_filtered, q2m, t2m, z0h, &
        veget, lai, height, &
        fields_out, fields_in,  &
-       coszang, zstd_not_filtered)  
+       coszang)  
 
     USE mod_orchidee_para
     IMPLICIT NONE
@@ -1402,7 +1401,7 @@ CONTAINS
             cdrag, petAcoef, peqAcoef, petBcoef, peqBcoef, &
             precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
             vevapp, fluxsens, fluxlat, coastalflow_cpl, riverflow_cpl, &
-            tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m,lon_scat_g, lat_scat_g, &
+            tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m,lon_scat_g, lat_scat_g, zstd_not_filtered, &
             q2m, t2m, zz0h)
 
        ! z0h is a optional output variable. Check first if it is present in the call from LMDZ.

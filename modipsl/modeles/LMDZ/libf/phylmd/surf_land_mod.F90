@@ -19,7 +19,7 @@ CONTAINS
        z0m, z0h, SFRWL, alb_dir_new, alb_dif_new, evap, fluxsens, fluxlat, &   
        qsurf, tsurf_new, dflux_s, dflux_l, &
        flux_u1, flux_v1 , & 
-       veget,lai,height)
+       veget,lai,height, zstd_not_filtered)
 
     USE dimphy
     USE surface_data, ONLY    : ok_veget
@@ -78,6 +78,7 @@ CONTAINS
     REAL, DIMENSION(klon), INTENT(IN)       :: lwdown_m  ! downwelling longwave radiation at mean surface
                                                          ! corresponds to previous sollwdown
     REAL, DIMENSION(klon), INTENT(IN)       :: q2m, t2m
+    REAL, DIMENSION(klon), INTENT(IN)       :: zstd_not_filtered ! Standard deviation of elevation (m)
 
 ! In/Output variables
 !****************************************************************************************
@@ -157,7 +158,7 @@ CONTAINS
             evap, fluxsens, fluxlat, &              
             tsol_rad, tsurf_new, alb1_new, alb2_new, &
             emis_new, z0m, z0h, qsurf, &
-            veget, lai, height)       
+            veget, lai, height, zstd_not_filtered)       
 
 
 !  

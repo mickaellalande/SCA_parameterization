@@ -2372,7 +2372,7 @@ CONTAINS
                                 !nrlmd+jyg<
             wake_delta_pbl_TKE, &
                                 !>nrlmd+jyg
-             treedrg )
+             treedrg, zstd_not_filtered )
 !FC
        !
        !  Add turbulent diffusion tendency to the wake difference variables

@@ -201,8 +201,9 @@ CONTAINS
 !!! nrlmd+jyg le 02/05/2011 et le 20/02/2012
 !!        tke_x,     tke_w                              &
        wake_dltke                                     &
-        , treedrg                                   &
-!FC
+        , treedrg,                                   &
+!FC     
+      zstd_not_filtered                              &
 !!!
                         )
 !****************************************************************************************
@@ -321,6 +322,7 @@ CONTAINS
     REAL, DIMENSION(klon),        INTENT(IN)        :: cldt    ! total cloud fraction
     REAL, DIMENSION(klon,klev),   INTENT(IN)        :: pphi    ! geopotential (m2/s2)
 ! Martin
+    REAL, DIMENSION(klon),        INTENT(IN)   :: zstd_not_filtered    ! Standard deviation of elevation (m)
 
 !!! nrlmd+jyg le 02/05/2011 et le 20/02/2012
 !!    REAL, DIMENSION(klon,klev),   INTENT(IN)        :: t_x       ! Temp\'erature hors poche froide
@@ -801,6 +803,9 @@ CONTAINS
     REAL, DIMENSION(klon)              :: ycldt
     REAL, DIMENSION(klon)              :: yrmu0
     ! Martin
+    ! Mickaël
+    REAL, DIMENSION(klon)              :: yzstd_not_filtered
+    ! Mickaël
 
 !****************************************************************************************
 ! End of declarations
@@ -1251,6 +1256,10 @@ CONTAINS
           ycldt(j)   = cldt(i)
           yrmu0(j)   = rmu0(i)
           ! Martin
+          ! Mickaël
+          ! yzstd_not_filtered vecteur de point sur chaque surface
+          yzstd_not_filtered(j) = zstd_not_filtered(i)
+          ! Mickaël
 !!! nrlmd le 13/06/2011
           y_delta_tsurf(j)=delta_tsurf(i,nsrf)
 !!!
@@ -1823,7 +1832,7 @@ CONTAINS
                yz0m, yz0h, SFRWL, yalb_dir_new, yalb_dif_new, yevap, yfluxsens,yfluxlat,&
                yqsurf, ytsurf_new, y_dflux_t, y_dflux_q, &
                y_flux_u1, y_flux_v1, &
-               yveget,ylai,yheight )
+               yveget,ylai,yheight, yzstd_not_filtered )
 !FC quid qd yveget ylai yheight ne sont pas definit
 !FC  yveget,ylai,yheight, &
             if (ifl_pbltree .ge. 1) then

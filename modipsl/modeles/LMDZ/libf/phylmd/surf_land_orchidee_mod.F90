@@ -45,7 +45,7 @@ CONTAINS
        evap, fluxsens, fluxlat, &              
        tsol_rad, tsurf_new, alb1_new, alb2_new, &
        emis_new, z0m_new, z0h_new, qsurf, &
-       veget, lai, height )
+       veget, lai, height, zstd_not_filtered )
 
 
     USE mod_surf_para
@@ -57,7 +57,7 @@ CONTAINS
 #ifdef CPP_VEGET
     USE time_phylmdz_mod, ONLY: itau_phy 
 #endif
-    USE phys_state_var_mod, only: zstd_not_filtered
+
 !    
 ! Cette routine sert d'interface entre le modele atmospherique et le 
 ! modele de sol continental. Appel a sechiba
@@ -138,6 +138,7 @@ CONTAINS
     REAL, DIMENSION(klon), INTENT(IN)         :: precip_rain, precip_snow
     REAL, DIMENSION(klon), INTENT(IN)         :: lwdown, swnet, swdown, ps
     REAL, DIMENSION(klon), INTENT(IN)         :: q2m, t2m
+    REAL, DIMENSION(klon), INTENT(IN)         :: zstd_not_filtered ! Standard deviation of elevation (m)
 
 ! Parametres de sortie
 !****************************************************************************************
@@ -421,7 +422,7 @@ CONTAINS
                precip_rain, precip_snow, lwdown, swnet, swdown, ps, &
                evap, fluxsens, fluxlat, coastalflow, riverflow, &
                tsol_rad, tsurf_new, qsurf, albedo_out, emis_new, z0m_new, &    
-               lon_scat, lat_scat, q2m, t2m, z0h_new, nvm_orch, zstd_not_filtered)
+               lon_scat, lat_scat, zstd_not_filtered, q2m, t2m, z0h_new, nvm_orch)
 #endif         
        ENDIF
 
@@ -450,9 +451,9 @@ CONTAINS
             precip_rain(1:knon), precip_snow(1:knon), lwdown(1:knon), swnet(1:knon), swdown_vrai(1:knon), ps(1:knon), &
             evap(1:knon), fluxsens(1:knon), fluxlat(1:knon), coastalflow(1:knon), riverflow(1:knon), &
             tsol_rad(1:knon), tsurf_new(1:knon), qsurf(1:knon), albedo_out(1:knon,:), emis_new(1:knon), z0m_new(1:knon), &
-            lon_scat, lat_scat, q2m, t2m, z0h_new(1:knon),&
+            lon_scat, lat_scat, zstd_not_filtered(1:knon), q2m, t2m, z0h_new(1:knon),&
             veget(1:knon,:),lai(1:knon,:),height(1:knon,:),&
-            coszang=yrmu0(1:knon), zstd_not_filtered)
+            coszang=yrmu0(1:knon))
 #endif       
     ENDIF
 

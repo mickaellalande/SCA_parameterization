@@ -124,7 +124,7 @@ CONTAINS
        cdrag, petAcoef, peqAcoef, petBcoef, peqBcoef, &
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow, riverflow, &
-       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, zstd_not_filtered)
+       tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m)
 
     IMPLICIT NONE
 
@@ -158,7 +158,7 @@ CONTAINS
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: lon, lat      !! Geographical coordinates
     REAL(r_std),DIMENSION (iim,jjm), INTENT(in)             :: zcontfrac     !! Fraction of continent in the grid
     REAL(r_std),DIMENSION (iim,jjm,2), INTENT(in)           :: zresolution   !! resolution in x and y dimensions
-    REAL(r_std),DIMENSION (kjpindex), INTENT(in)      :: zstd_not_filtered   !! Standard deviation of elevation (m)
+    
 
     !! 0.2 Output variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(out)            :: z0m            !! Surface roughness
@@ -175,6 +175,11 @@ CONTAINS
 
     !! 0.3 Modified variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(inout)          :: cdrag         !! Cdrag
+    
+    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
+    !! it should not stay here
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)   :: zstd_not_filtered   !! Standard deviation of elevation (m)
+    zstd_not_filtered = 0
 
     !! 0.4 Local variables
     REAL(r_std),DIMENSION (kjpindex)                      :: zu            !! Work array to keep u
@@ -433,7 +438,7 @@ CONTAINS
        precip_rain, precip_snow, lwdown, swnet, swdown, pb, &
        vevapp, fluxsens, fluxlat, coastalflow, riverflow, &
        tsol_rad, temp_sol_new, qsurf, albedo, emis, z0m, &
-       coszang, zstd_not_filtered)
+       coszang)
 
     IMPLICIT NONE
 
@@ -485,6 +490,11 @@ CONTAINS
 
     !! 0.3 Modified variables
     REAL(r_std),DIMENSION (iim,jjm), INTENT(inout)          :: cdrag         !! Cdrag
+    
+    !! I add zstd_not_filtered here just to test the configuration with LMDZ coupled
+    !! it should not stay here
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)   :: zstd_not_filtered   !! Standard deviation of elevation (m)
+    zstd_not_filtered = 0
 
     !! 0.4 Local variables
     REAL(r_std),DIMENSION (kjpindex)                      :: zu            !! Work array to keep u

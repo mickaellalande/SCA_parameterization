@@ -235,7 +235,7 @@ CONTAINS
        ALLOCATE(ktindex(knon))
        IF ( .NOT. ALLOCATED(albedo_keep)) THEN
 !ym          ALLOCATE(albedo_keep(klon))
-!ym bizarre que non allou� en knon precedement
+!ym bizarre que non alloué en knon precedement
           ALLOCATE(albedo_keep(knon))
           ALLOCATE(zlev(knon))
        ENDIF

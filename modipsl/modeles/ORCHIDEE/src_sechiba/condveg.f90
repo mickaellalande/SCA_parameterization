@@ -895,13 +895,13 @@ CONTAINS
           !!!!!!!!!!!!!!!!!!!!!!
           ! Accumulation curve !
           !!!!!!!!!!!!!!!!!!!!!!
-          IF (precip_snow .GT. 0.) THEN
+          WHERE (precip_snow(:) .GT. 0.)
             frac_snow_veg(:) = 1. - (1. - MIN(1., k * precip_snow(:)) * (1. - frac_snow_veg(:))) ! Equation (3)
 
           !!!!!!!!!!!!!!!!!!!
           ! Depletion curve !
           !!!!!!!!!!!!!!!!!!!
-          ELSE
+          ELSEWHERE
             pi = 4. * atan (1.)
             epsilon = 1e-6
             swe(:) = snowdepth(:) * snowrho_ave(:) ! Snow water equivalent (kg/m2)
@@ -909,7 +909,7 @@ CONTAINS
 
             swe_max(:) = (2. * swe(:)) / (1. + COS(pi * (1. - frac_snow_veg(:))**(1./N_melt(:)))) ! Equation (11) -> wrong in the paper
             frac_snow_veg(:) = 1. - (1. / pi *  ACOS(2. * swe(:) / swe_max(:) - 1.))**N_melt(:) ! Equation (4)
-          END IF
+          END WHERE
 
        END WHERE
     ELSE

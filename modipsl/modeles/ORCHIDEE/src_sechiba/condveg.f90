@@ -870,10 +870,11 @@ CONTAINS
     REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: swe_max         !! Maximum snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: N_melt          !! Parameter that controls the shape of the snow-covered area
+    INTEGER(i_std), DIMENSION(kjpindex)                 :: k               !! Scale factor for SL12 parameterization
+    REAL(r_std), DIMENSION(kjpindex)                    :: pi              !! pi
+    REAL(r_std), DIMENSION(kjpindex)                    :: epsilon         !! Small constant
     INTEGER(i_std)                                      :: jv
-    INTEGER(i_std)                                      :: k               !! Scale factor for SL12 parameterization
-    REAL(r_std)                                         :: pi              !! pi
-    REAL(r_std)                                         :: epsilon         !! Small constant
+
 
     !! Calculate snow cover fraction for both total vegetated and total non-vegetative surfaces.
     IF (ok_explicitsnow) THEN
@@ -890,25 +891,25 @@ CONTAINS
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
           ! Parameters
-          k = 0.1 ! Scale factor
+          k(:) = 0.1 ! Scale factor
 
           !!!!!!!!!!!!!!!!!!!!!!
           ! Accumulation curve !
           !!!!!!!!!!!!!!!!!!!!!!
           WHERE (precip_snow(:) .GT. 0.)
-            frac_snow_veg(:) = 1. - (1. - MIN(1., k * precip_snow(:)) * (1. - frac_snow_veg(:))) ! Equation (3)
+            frac_snow_veg(:) = 1. - (1. - MIN(1., k(:) * precip_snow(:)) * (1. - frac_snow_veg(:))) ! Equation (3)
 
           !!!!!!!!!!!!!!!!!!!
           ! Depletion curve !
           !!!!!!!!!!!!!!!!!!!
           ELSEWHERE
-            pi = 4. * atan (1.)
-            epsilon = 1e-6
+            pi(:) = 4. * atan (1.)
+            epsilon(:) = 1e-6
             swe(:) = snowdepth(:) * snowrho_ave(:) ! Snow water equivalent (kg/m2)
-            N_melt(:) = 200. / (zstd_not_filtered(:) + epsilon) ! Equation (5)
+            N_melt(:) = 200. / (zstd_not_filtered(:) + epsilon(:)) ! Equation (5)
 
-            swe_max(:) = (2. * swe(:)) / (1. + COS(pi * (1. - frac_snow_veg(:))**(1./N_melt(:)))) ! Equation (11) -> wrong in the paper
-            frac_snow_veg(:) = 1. - (1. / pi *  ACOS(2. * swe(:) / swe_max(:) - 1.))**N_melt(:) ! Equation (4)
+            swe_max(:) = (2. * swe(:)) / (1. + COS(pi(:) * (1. - frac_snow_veg(:))**(1./N_melt(:)))) ! Equation (11) -> wrong in the paper
+            frac_snow_veg(:) = 1. - (1. / pi(:) *  ACOS(2. * swe(:) / swe_max(:) - 1.))**N_melt(:) ! Equation (4)
           END WHERE
 
        END WHERE

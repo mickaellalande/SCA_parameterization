@@ -1,8 +1,0 @@
-%ARCH          X64_JEANZAY
-%FFLAGS        %BASE_FFLAGS %PROD_FFLAGS %MPI_FFLAGS %OMP_FFLAGS
-%CPP_KEY       XIOS CPP_OMP CPP_PARA %FPP_DEF
-%EXEC          liborchidee_ol.a dim2_driver.exe
-%LD_FFLAGS     %MPI_LD %OMP_LD %BASE_LD %PROD_FFLAGS
-%INCDIR        -I./  -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -I/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/inc
-%LIBDIR        -L./ -lnetcdf -lnetcdff -lstdc++ -L/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../../lib -L/gpfsdswork/projects/rech/goe/ufz23bm/SCA_parameterization/modipsl/modeles/ORCHIDEE/../XIOS/lib -lxios
-%EXT_SRC       

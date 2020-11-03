@@ -109,7 +109,7 @@
     <field field_ref="fluxsens" level="0"/>
     <field field_ref="fluxlat" level="0"/>
     <field field_ref="snow" level="0"/>
-    
+
     <field field_ref="snowage" level="3"/>
     <field field_ref="snownobio" level="0"/>
     <field field_ref="snownobioage" level="3"/>
@@ -343,6 +343,11 @@
 
   <!-- Sechiba file 2 -->
   <file id="sechiba2" name="sechiba_out_2" output_level="_AUTO_" output_freq="_AUTO_" enabled="_AUTO_">
+    <field field_ref="frac_snow"  level="0"/>
+    <field field_ref="frac_snow_veg"  level="0"/>
+    <field field_ref="frac_snow_nobio"  level="0"/>
+    <field field_ref="snowage_glob"  level="0"/>
+    <field field_ref="vevapsno" name="subli" level="0" unit="mm/d" > this*86400  </fiel
     <!-- level 1 -->
     <field field_ref="areas" level="0"/>
     <field field_ref="LandPoints" level="20"/>
@@ -367,9 +372,9 @@
     <field field_ref="vevapnu" name="evapnu" level="2" unit="mm/d" > this*86400  </field>
     <field field_ref="temp_sol_new_C" level="2"/>
     <field field_ref="qsurf" level="2"/>
-    <field field_ref="fluxsens" level="2"/>
-    <field field_ref="fluxlat" level="2"/>
-    <field field_ref="emis" level="2"/>
+    <field field_ref="fluxsens" level="0"/>
+    <field field_ref="fluxlat" level="0"/>
+    <field field_ref="emis" level="0"/>
     <field field_ref="riversret" level="2"/>
     <field field_ref="hydrographs" level="2"/>
     <field field_ref="undermcr" level="2"/>
@@ -382,9 +387,9 @@
     <field field_ref="dr_corrnum" level="2"/>
     <!-- level 3 -->
     <field field_ref="vevapp_day" level="3"/>
-    <field field_ref="precip_rain" level="3" name="rain" unit="mm/d" > precip_rain*86400  </field>
-    <field field_ref="precip_snow" level="3" name="snowf" unit="mm/d" > precip_snow*86400  </field>
-    <field field_ref="netrad" level="3"/>
+    <field field_ref="precip_rain" level="0" name="rain" unit="mm/d" > precip_rain*86400  </field>
+    <field field_ref="precip_snow" level="0" name="snowf" unit="mm/d" > precip_snow*86400  </field>
+    <field field_ref="netrad" level="0"/>
     <field field_ref="lai" level="3"/>
     <field field_ref="basinmap" level="3"/>
     <field field_ref="nbrivers" level="3"/>
@@ -392,19 +397,19 @@
     <field field_ref="check_tr" level="3"/>
     <field field_ref="check_over" level="3"/>
     <field field_ref="check_under" level="3"/>
-    
+
 
     <!-- level 4 -->
     <field field_ref="vevapsno" name="subli" level="4" unit="mm/d" > this*86400  </field>
     <field field_ref="runoff" name="runoff" level="4" unit="mm/d" > runoff*86400  </field>
     <field field_ref="drainage" name="drainage" level="4" unit="mm/d" > drainage*86400  </field>
-    <field field_ref="temp_air" level="4"/>
-    <field field_ref="qair" level="4"/>
-    <field field_ref="q2m" level="4"/>
-    <field field_ref="t2m" level="4"/>
-    <field field_ref="albedo_vis" level="4"/>
-    <field field_ref="albedo_nir" level="4"/>
-    <field field_ref="roughheight" level="4"/>
+    <field field_ref="temp_air" level="0"/>
+    <field field_ref="qair" level="0"/>
+    <field field_ref="q2m" level="0"/>
+    <field field_ref="t2m" level="0"/>
+    <field field_ref="albedo_vis" level="0"/>
+    <field field_ref="albedo_nir" level="0"/>
+    <field field_ref="roughheight" level="0"/>
     <field field_ref="transpir" level="4"/>
     <field field_ref="inter" level="4"/>
     <field field_ref="evapnu_soil" level="4"/>
@@ -412,20 +417,20 @@
     <field field_ref="transpir_soil" level="4"/>
     <field field_ref="runoff_soil" level="4"/>
     <!-- level 5 -->
-    <field field_ref="tsol_max" level="5"/>
-    <field field_ref="tsol_min" level="5"/>
-    <field field_ref="snow" level="5"/>
-    <field field_ref="snowage" level="5"/>
-    <field field_ref="snownobio" level="5"/>
-    <field field_ref="snownobioage" level="5"/>
-    <field field_ref="snowmelt" level="5"/>
-    <field field_ref="tot_melt" level="5"/>
-    <field field_ref="snowmelt_from_maxmass" level="5"/>
-    <field field_ref="soilcap" level="5"/>
-    <field field_ref="vegetfrac" level="5"/>
-    <field field_ref="maxvegetfrac" level="5"/>
-    <field field_ref="nobiofrac" level="5"/>
-    <field field_ref="temp_hydro"  level="5"/>
+    <field field_ref="tsol_max" level="0"/>
+    <field field_ref="tsol_min" level="0"/>
+    <field field_ref="snow" level="0"/>
+    <field field_ref="snowage" level="0"/>
+    <field field_ref="snownobio" level="0"/>
+    <field field_ref="snownobioage" level="0"/>
+    <field field_ref="snowmelt" level="0"/>
+    <field field_ref="tot_melt" level="0"/>
+    <field field_ref="snowmelt_from_maxmass" level="0"/>
+    <field field_ref="soilcap" level="0"/>
+    <field field_ref="vegetfrac" level="0"/>
+    <field field_ref="maxvegetfrac" level="0"/>
+    <field field_ref="nobiofrac" level="0"/>
+    <field field_ref="temp_hydro"  level="0"/>
     <!-- level 6 -->
     <field field_ref="dss" level="6"/>
     <field field_ref="gqsb" level="6"/>
@@ -448,11 +453,11 @@
     <field field_ref="evapot_corr" level="6"/>
     <field field_ref="twbr" level="6"/>
     <!-- level 7 -->
-    <field field_ref="swnet" level="7"/>
-    <field field_ref="swdown" level="7"/>
-    <field field_ref="lwdown" level="7"/>
-    <field field_ref="lwnet" level="7"/>
-    <field field_ref="diffevap" level="7"/>
+    <field field_ref="swnet" level="0"/>
+    <field field_ref="swdown" level="0"/>
+    <field field_ref="lwdown" level="0"/>
+    <field field_ref="lwnet" level="0"/>
+    <field field_ref="diffevap" level="0"/>
     <!-- level 8 -->
     <field field_ref="fastr" level="8"/>
     <field field_ref="slowr" level="8"/>
@@ -542,19 +547,19 @@
     <field field_ref="psi_moy" level="11"/>
     <field field_ref="profil_froz_hydro" level="11"/>
     <field field_ref="pkappa"  level="11"/>
-    <field field_ref="pkappa_snow" level="11"/>
+    <field field_ref="pkappa_snow" level="0"/>
     <field field_ref="pcapa"  level="11"/>
     <field field_ref="pcapa_spec"  level="11"/>
-    <field field_ref="pcapa_snow"  level="11"/>
+    <field field_ref="pcapa_snow"  level="0"/>
     <field field_ref="snowtemp"  level="0"/>
-    <field field_ref="snowtemp_weighted"  level="11"/>
-    <field field_ref="snowliq"  level="11"/>
+    <field field_ref="snowtemp_weighted"  level="0"/>
+    <field field_ref="snowliq"  level="0"/>
     <field field_ref="snowdz"  level="0"/>
     <field field_ref="snowrho"  level="0"/>
-    <field field_ref="snowheat"  level="11"/>
-    <field field_ref="snowgrain"  level="11"/>
-    <field field_ref="snowdepth"  level="11"/>
-    <field field_ref="mc" level="0"/>   <!-- mc is a 4 dimensional variable --> 
+    <field field_ref="snowheat"  level="0"/>
+    <field field_ref="snowgrain"  level="0"/>
+    <field field_ref="snowdepth"  level="0"/>
+    <field field_ref="mc" level="1"/>   <!-- mc is a 4 dimensional variable -->
   </file>
 
   <!-- Sechiba file 3 -->
@@ -846,7 +851,7 @@
     <field field_ref="FIREINDEX" level="10"/>
     <field field_ref="HET_RESP_SOIL" level="10"/>
     <field field_ref="HET_RESP_LITTER" level="10"/>
- 
+
   </file>
 
   <!-- Stomate file 2 -->

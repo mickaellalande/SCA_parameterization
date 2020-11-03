@@ -347,7 +347,7 @@
     <field field_ref="frac_snow_veg"  level="0"/>
     <field field_ref="frac_snow_nobio"  level="0"/>
     <field field_ref="snowage_glob"  level="0"/>
-    <field field_ref="vevapsno" name="subli" level="0" unit="mm/d" > this*86400  </fiel
+    <field field_ref="vevapsno" name="subli" level="0" unit="mm/d" > this*86400  </field>
     <!-- level 1 -->
     <field field_ref="areas" level="0"/>
     <field field_ref="LandPoints" level="20"/>

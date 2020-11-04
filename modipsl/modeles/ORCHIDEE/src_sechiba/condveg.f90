@@ -897,7 +897,7 @@ CONTAINS
           ! Accumulation curve !
           !!!!!!!!!!!!!!!!!!!!!!
           WHERE (precip_snow(:) .GT. 0.)
-            frac_snow_veg(:) = 1. - (1. - MIN(1., k(:) * precip_snow(:)) * (1. - frac_snow_veg(:))) ! Equation (3)
+            frac_snow_veg(:) = 1. - (1. - MIN(1., k(:) * precip_snow(:))) * (1. - frac_snow_veg(:)) ! Equation (3)
 
           !!!!!!!!!!!!!!!!!!!
           ! Depletion curve !

@@ -872,7 +872,7 @@ CONTAINS
     REAL(r_std), DIMENSION(kjpindex)                    :: N_melt          !! Parameter that controls the shape of the snow-covered area
     REAL(r_std), DIMENSION(kjpindex)                    :: k               !! Scale factor for SL12 parameterization
     REAL(r_std), DIMENSION(kjpindex)                    :: pi              !! pi
-    REAL(r_std), DIMENSION(kjpindex)                    :: epsilon         !! Small constant
+    REAL(r_std), DIMENSION(kjpindex)                    :: eps             !! Small constant
     INTEGER(i_std)                                      :: jv
 
 
@@ -882,7 +882,7 @@ CONTAINS
        snowrho_snowdz=sum(snowrho*snowdz,2)
 
        pi = 4. * atan(1.)
-       epsilon = 1e-6
+       eps = 1e-4
        k = 0.1 ! Scale factor
 
        WHERE(snowdepth(:) < min_sechiba)
@@ -892,16 +892,16 @@ CONTAINS
 
           ! Swenson and Lawrence (2012) SCF parameterization (SL12): (https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178
           ! Accumulation curve
-          WHERE (precip_snow(:) > 0.)
+          WHERE (precip_snow(:) > min_sechiba)
             frac_snow_veg(:) = 1. - ( 1. - MIN(1., k * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! Equation (3)
 
           ! Depletion curve
-          ELSEWHERE (frac_snow_veg(:) > 0.)
+          ELSEWHERE (frac_snow_veg(:) > min_sechiba)
             swe(:) = snowdepth(:) * snowrho_ave(:) ! Snow water equivalent (kg/m2)
-            N_melt(:) = 200. / ( zstd_not_filtered(:) + epsilon ) ! Equation (5)
+            N_melt(:) = 200. / ( zstd_not_filtered(:) + eps ) ! Equation (5)
 
-            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) + epsilon ) ! Equation (11) -> wrong in the paper
-            frac_snow_veg(:) = MIN(0., 1. - ( 1. / pi *  ACOS( 2. * swe(:) / swe_max(:) - 1. - epsilon ) )**N_melt(:) ) ! Equation (4)
+            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) + eps ) ! Equation (11) -> wrong in the paper
+            frac_snow_veg(:) = MIN(0., 1. - ( 1. / pi *  ACOS( 2. * swe(:) / swe_max(:) - 1. - eps ) )**N_melt(:) ) ! Equation (4)
           END WHERE
 
        END WHERE

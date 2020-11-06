@@ -870,7 +870,7 @@ CONTAINS
     REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: swe_max         !! Maximum snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: N_melt          !! Parameter that controls the shape of the snow-covered area
-    INTEGER(i_std), DIMENSION(kjpindex)                 :: k               !! Scale factor for SL12 parameterization
+    REAL(r_std), DIMENSION(kjpindex)                    :: k               !! Scale factor for SL12 parameterization
     REAL(r_std), DIMENSION(kjpindex)                    :: pi              !! pi
     REAL(r_std), DIMENSION(kjpindex)                    :: epsilon         !! Small constant
     INTEGER(i_std)                                      :: jv
@@ -880,39 +880,40 @@ CONTAINS
     IF (ok_explicitsnow) THEN
        snowdepth=sum(snowdz,2)
        snowrho_snowdz=sum(snowrho*snowdz,2)
-       WHERE(snowdepth(:) .LT. min_sechiba)
+
+       pi = 4. * atan(1.)
+       epsilon = 1e-6
+       k = 0.1 ! Scale factor
+
+       WHERE(snowdepth(:) < min_sechiba)
           frac_snow_veg(:) = 0.
        ELSEWHERE
           snowrho_ave(:)=snowrho_snowdz(:)/snowdepth(:)
 
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          ! Swenson and Lawrence (2012) SCF parameterization (SL12)               !
-          ! https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178 !
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! Swenson and Lawrence (2012) SCF parameterization (SL12): (https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178
+          ! Accumulation curve
+          WHERE (precip_snow(:) > 0.)
+            frac_snow_veg(:) = 1. - ( 1. - MIN(1., k * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! Equation (3)
 
-          ! Parameters
-          k(:) = 0.1 ! Scale factor
-
-          !!!!!!!!!!!!!!!!!!!!!!
-          ! Accumulation curve !
-          !!!!!!!!!!!!!!!!!!!!!!
-          WHERE (precip_snow(:) .GT. 0.)
-            frac_snow_veg(:) = 1. - (1. - MIN(1., k(:) * precip_snow(:))) * (1. - frac_snow_veg(:)) ! Equation (3)
-
-          !!!!!!!!!!!!!!!!!!!
-          ! Depletion curve !
-          !!!!!!!!!!!!!!!!!!!
-          ELSEWHERE
-            pi(:) = 4. * atan (1.)
-            epsilon(:) = 1e-6
+          ! Depletion curve
+          ELSEWHERE (frac_snow_veg(:) > 0.)
             swe(:) = snowdepth(:) * snowrho_ave(:) ! Snow water equivalent (kg/m2)
-            N_melt(:) = 200. / (zstd_not_filtered(:) + epsilon(:)) ! Equation (5)
+            N_melt(:) = 200. / ( zstd_not_filtered(:) + epsilon ) ! Equation (5)
 
-            swe_max(:) = (2. * swe(:)) / (1. + COS(pi(:) * (1. - frac_snow_veg(:))**(1./N_melt(:)))) ! Equation (11) -> wrong in the paper
-            frac_snow_veg(:) = 1. - (1. / pi(:) *  ACOS(2. * swe(:) / swe_max(:) - 1.))**N_melt(:) ! Equation (4)
+            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) + epsilon ) ! Equation (11) -> wrong in the paper
+            frac_snow_veg(:) = MIN(0., 1. - ( 1. / pi *  ACOS( 2. * swe(:) / swe_max(:) - 1. - epsilon ) )**N_melt(:) ) ! Equation (4)
           END WHERE
 
        END WHERE
+
+       PRINT*,'snowdepth [m] min: ',minval(snowdepth),', max: ',maxval(snowdepth)
+       PRINT*,'precip_snow [kg/m2] min: ',minval(precip_snow),', max: ',maxval(precip_snow)
+       PRINT*,'N_melt [1/m] min: ',minval(N_melt),', max: ',maxval(N_melt)
+       PRINT*,'zstd_not_filtered [m] min: ',minval(zstd_not_filtered),', max: ',maxval(zstd_not_filtered)
+       PRINT*,'swe_max [kg/m2] min: ',minval(swe_max),', max: ',maxval(swe_max)
+       PRINT*,'swe [kg/m2] min: ',minval(swe),', max: ',maxval(swe)
+       PRINT*,'frac_snow_veg min: ',minval(frac_snow_veg),', max: ',maxval(frac_snow_veg)
+
     ELSE
        frac_snow_veg(:) = MIN(MAX(snow(:),zero)/(MAX(snow(:),zero)+snowcri_alb*sn_dens/100.0),un)
     END IF

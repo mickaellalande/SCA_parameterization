@@ -868,11 +868,9 @@ CONTAINS
     REAL(r_std), DIMENSION(kjpindex)                    :: snowdepth       !! Snow depth
     REAL(r_std), DIMENSION(kjpindex)                    :: snowrho_snowdz  !! Snow rho time snowdz
     REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (kg/m2)
-    REAL(r_std), DIMENSION(kjpindex)                    :: swe_max         !! Maximum snow water equivalent (kg/m2)
+    REAL(r_std), SAVE, DIMENSION(kjpindex)              :: swe_max         !! Maximum snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: N_melt          !! Parameter that controls the shape of the snow-covered area
-    REAL(r_std), DIMENSION(kjpindex)                    :: k               !! Scale factor for SL12 parameterization
-    REAL(r_std), DIMENSION(kjpindex)                    :: pi              !! pi
-    REAL(r_std), DIMENSION(kjpindex)                    :: eps             !! Small constant
+    REAL(r_std)                                         :: pi              !! pi
     INTEGER(i_std)                                      :: jv
 
 
@@ -882,37 +880,54 @@ CONTAINS
        snowrho_snowdz=sum(snowrho*snowdz,2)
 
        pi = 4. * atan(1.)
-       eps = 1e-4
-       k = 0.1 ! Scale factor
 
+       ! Initialization for Swenson and Lawrence parameterization
+       swe = 0.
+       swe_max = 0.
+       N_melt(:) = 200. / ( zstd_not_filtered(:) + 20. ) ! eq. (5) in SL12 (modified)
+
+       ! min_sechiba = 1e-8
        WHERE(snowdepth(:) < min_sechiba)
           frac_snow_veg(:) = 0.
        ELSEWHERE
-          snowrho_ave(:)=snowrho_snowdz(:)/snowdepth(:)
+          ! Compute the average snow density [kg/m3] and snow water equivalent [kg/m2]
+          snowrho_ave(:) = snowrho_snowdz(:) / snowdepth(:)
+          swe(:) = snowdepth(:) * snowrho_ave(:)
 
-          ! Swenson and Lawrence (2012) SCF parameterization (SL12): (https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178
-          ! Accumulation curve
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! Swenson and Lawrence (2012) SCF parameterization (SL12)               !
+          ! https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178 !
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+          !!!!!!!!!!!!!!!!!!!!!!
+          ! Accumulation curve !
+          !!!!!!!!!!!!!!!!!!!!!!
           WHERE (precip_snow(:) > min_sechiba)
-            frac_snow_veg(:) = 1. - ( 1. - MIN(1., k * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! Equation (3)
+            ! Compute the SCF
+            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.18 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
 
-          ! Depletion curve
+            ! Update SWE_max for fitting with the depletion curve
+            ! Variable saved at each step
+            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) ) ! eq (11) in SL12 (wrong in the paper?)
+
+
+          !!!!!!!!!!!!!!!!!!!
+          ! Depletion curve !
+          !!!!!!!!!!!!!!!!!!!
+          ! Formula valid only for SCF > 0
           ELSEWHERE (frac_snow_veg(:) > min_sechiba)
-            swe(:) = snowdepth(:) * snowrho_ave(:) ! Snow water equivalent (kg/m2)
-            N_melt(:) = 200. / ( zstd_not_filtered(:) + eps ) ! Equation (5)
-
-            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) + eps ) ! Equation (11) -> wrong in the paper
-            frac_snow_veg(:) = MIN(0., 1. - ( 1. / pi *  ACOS( 2. * swe(:) / swe_max(:) - 1. - eps ) )**N_melt(:) ) ! Equation (4)
+            frac_snow_veg(:) = 1. - ( 1. / pi * ACOS( 2. * swe(:) / swe_max(:) - 1. ) )**N_melt(:) ! eq. (4) in SL12
           END WHERE
 
        END WHERE
 
-       PRINT*,'snowdepth [m] min: ',minval(snowdepth),', max: ',maxval(snowdepth)
-       PRINT*,'precip_snow [kg/m2] min: ',minval(precip_snow),', max: ',maxval(precip_snow)
-       PRINT*,'N_melt [1/m] min: ',minval(N_melt),', max: ',maxval(N_melt)
-       PRINT*,'zstd_not_filtered [m] min: ',minval(zstd_not_filtered),', max: ',maxval(zstd_not_filtered)
-       PRINT*,'swe_max [kg/m2] min: ',minval(swe_max),', max: ',maxval(swe_max)
-       PRINT*,'swe [kg/m2] min: ',minval(swe),', max: ',maxval(swe)
-       PRINT*,'frac_snow_veg min: ',minval(frac_snow_veg),', max: ',maxval(frac_snow_veg)
+       PRINT '(A29 F12.5 A7 F12.5)', 'precip_snow [kg/m2] -> min: ', minval(precip_snow),', max: ', maxval(precip_snow)
+       PRINT '(A29 F12.5 A7 F12.5)', 'snowdepth   [m]     -> min: ', minval(snowdepth),', max: ', maxval(snowdepth)
+       PRINT '(A29 F12.5 A7 F12.5)', 'swe         [kg/m2] -> min: ', minval(swe),', max: ', maxval(swe)
+       PRINT '(A29 F12.5 A7 F12.5)', 'zstd        [m]     -> min: ', minval(zstd_not_filtered),', max: ', maxval(zstd_not_filtered)
+       PRINT '(A29 F12.5 A7 F12.5)', 'N_melt      [1/m]   -> min: ', minval(N_melt),', max: ', maxval(N_melt)
+       PRINT '(A29 F12.5 A7 F12.5)', 'swe_max     [kg/m2] -> min: ', minval(swe_max),', max: ', maxval(swe_max)
+       PRINT '(A29 F12.5 A7 F12.5)', 'frac_snow_veg       -> min: ', minval(frac_snow_veg),', max: ', maxval(frac_snow_veg)
 
     ELSE
        frac_snow_veg(:) = MIN(MAX(snow(:),zero)/(MAX(snow(:),zero)+snowcri_alb*sn_dens/100.0),un)

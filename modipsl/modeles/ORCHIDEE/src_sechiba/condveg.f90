@@ -103,7 +103,7 @@ CONTAINS
        drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
        temp_air, pb, u, v, lai, &
        emis, albedo, z0m, z0h, roughheight, &
-       frac_snow_veg,frac_snow_nobio, zstd_not_filtered, precip_snow)
+       frac_snow_veg,frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
     !! 0. Variable and parameter declaration
     !! 0.1 Input variables
@@ -145,6 +145,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: roughheight      !! Effective height for roughness
     REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
     REAL(r_std),DIMENSION (kjpindex,nnobio), INTENT(out):: frac_snow_nobio  !! Snow cover fraction on non-vegeted area
+    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
 
     !! 0.4 Local variables
     INTEGER                                          :: ier
@@ -258,7 +259,7 @@ CONTAINS
 
     !! 3. Calculate the fraction of snow on vegetation and nobio
     CALL condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow)
+                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
     !! 4. Calculate roughness height if it was not found in the restart file
     IF ( ALL(z0m(:) == val_exp) .OR. ALL(z0h(:) == val_exp) .OR. ALL(roughheight(:) == val_exp)) THEN
@@ -321,7 +322,7 @@ CONTAINS
        drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
        temp_air, pb, u, v, lai, &
        emis, albedo, z0m, z0h, roughheight, &
-       frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow)
+       frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
      !! 0. Variable and parameter declaration
 
@@ -367,6 +368,7 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: z0h              !! Roughness for heat (m)
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: roughheight      !! Effective height for roughness
     REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
+    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
     REAL(r_std),DIMENSION (kjpindex,nnobio), INTENT(out):: frac_snow_nobio  !! Snow cover fraction on non-vegeted area
 
     !! 0.3 Modified variables
@@ -383,7 +385,7 @@ CONTAINS
 
     !! 1. Calculate the fraction of snow on vegetation and nobio
     CALL condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow)
+                           frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
     !! 2. Calculate emissivity
     emis(:) = emis_scal
@@ -846,7 +848,7 @@ CONTAINS
 !_ ================================================================================================================================
 
   SUBROUTINE condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
-                               frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow)
+                               frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
     !! 0. Variable and parameter declaration
     !! 0.1 Input variables
     INTEGER(i_std), INTENT(in)                          :: kjpindex        !! Domain size
@@ -862,17 +864,16 @@ CONTAINS
 
     !! 0.3 Input/Output variables
     REAL(r_std), DIMENSION(kjpindex), INTENT(inout)     :: frac_snow_veg   !! Fraction of snow on vegetation (unitless ratio)
+    REAL(r_std), DIMENSION(kjpindex), INTENT(inout)     :: swe_max         !! Maximum snow water equivalent (kg/m2)
 
     !! 0.4 Local variables
     REAL(r_std), DIMENSION(kjpindex)                    :: snowrho_ave     !! Average snow density
     REAL(r_std), DIMENSION(kjpindex)                    :: snowdepth       !! Snow depth
     REAL(r_std), DIMENSION(kjpindex)                    :: snowrho_snowdz  !! Snow rho time snowdz
     REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (kg/m2)
-    REAL(r_std), SAVE, DIMENSION(kjpindex)              :: swe_max         !! Maximum snow water equivalent (kg/m2)
     REAL(r_std), DIMENSION(kjpindex)                    :: N_melt          !! Parameter that controls the shape of the snow-covered area
     REAL(r_std)                                         :: pi              !! pi
     INTEGER(i_std)                                      :: jv
-
 
     !! Calculate snow cover fraction for both total vegetated and total non-vegetative surfaces.
     IF (ok_explicitsnow) THEN
@@ -883,12 +884,12 @@ CONTAINS
 
        ! Initialization for Swenson and Lawrence parameterization
        swe = 0.
-       swe_max = 0.
-       N_melt(:) = 200. / ( zstd_not_filtered(:) + 20. ) ! eq. (5) in SL12 (modified)
+       N_melt(:) = 200. / max(30., zstd_not_filtered(:)) ! eq. (5) in SL12 (modified)
 
        ! min_sechiba = 1e-8
        WHERE(snowdepth(:) < min_sechiba)
           frac_snow_veg(:) = 0.
+
        ELSEWHERE
           ! Compute the average snow density [kg/m3] and snow water equivalent [kg/m2]
           snowrho_ave(:) = snowrho_snowdz(:) / snowdepth(:)
@@ -898,25 +899,37 @@ CONTAINS
           ! Swenson and Lawrence (2012) SCF parameterization (SL12)               !
           ! https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2012JD018178 !
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! https://github.com/ESCOMP/CTSM/blob/master/src/biogeophys/SnowCoverFractionSwensonLawrence2012Mod.F90
 
           !!!!!!!!!!!!!!!!!!!!!!
           ! Accumulation curve !
           !!!!!!!!!!!!!!!!!!!!!!
           WHERE (precip_snow(:) > min_sechiba)
             ! Compute the SCF
-            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.18 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
+            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.26 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
 
-            ! Update SWE_max for fitting with the depletion curve
-            ! Variable saved at each step
-            swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) ) ! eq (11) in SL12 (wrong in the paper?)
+            WHERE (frac_snow_veg(:) > 1e-7)
+              ! Update SWE_max for fitting with the depletion curve
+              ! Variable saved at each step
+              swe_max(:) = ( 2. * swe(:) ) / ( 1. + COS( pi * (1. - frac_snow_veg(:))**(1./N_melt(:)) ) ) ! eq (11) in SL12 (wrong in the paper?)
+
+            ELSEWHERE
+              frac_snow_veg(:) = 0.
+
+            END WHERE
 
 
           !!!!!!!!!!!!!!!!!!!
           ! Depletion curve !
           !!!!!!!!!!!!!!!!!!!
           ! Formula valid only for SCF > 0
-          ELSEWHERE (frac_snow_veg(:) > min_sechiba)
-            frac_snow_veg(:) = 1. - ( 1. / pi * ACOS( 2. * swe(:) / swe_max(:) - 1. ) )**N_melt(:) ! eq. (4) in SL12
+          ELSEWHERE (frac_snow_veg(:) > 1e-7)
+            frac_snow_veg(:) = 1. - ( 1. / pi * ACOS( 2. * MIN(1., swe(:) / swe_max(:)) - 1. ) )**N_melt(:) ! eq. (4) in SL12
+
+          ! If SCF too small keep it at 0
+          ELSEWHERE
+            frac_snow_veg(:) = 0.
+
           END WHERE
 
        END WHERE
@@ -926,7 +939,7 @@ CONTAINS
        PRINT '(A29 F12.5 A7 F12.5)', 'swe         [kg/m2] -> min: ', minval(swe),', max: ', maxval(swe)
        PRINT '(A29 F12.5 A7 F12.5)', 'zstd        [m]     -> min: ', minval(zstd_not_filtered),', max: ', maxval(zstd_not_filtered)
        PRINT '(A29 F12.5 A7 F12.5)', 'N_melt      [1/m]   -> min: ', minval(N_melt),', max: ', maxval(N_melt)
-       PRINT '(A29 F12.5 A7 F12.5)', 'swe_max     [kg/m2] -> min: ', minval(swe_max),', max: ', maxval(swe_max)
+       ! PRINT '(A29 F12.5 A7 F12.5)', 'swe_max     [kg/m2] -> min: ', minval(swe_max),', max: ', maxval(swe_max)
        PRINT '(A29 F12.5 A7 F12.5)', 'frac_snow_veg       -> min: ', minval(frac_snow_veg),', max: ', maxval(frac_snow_veg)
 
     ELSE

@@ -277,6 +277,8 @@ MODULE sechiba
 !$OMP THREADPRIVATE(lambda_snow)
   REAL(r_std), ALLOCATABLE, SAVE, DIMENSION(:)    :: temp_sol_add !! Additional energy to melt snow for snow ablation case (K)
 !$OMP THREADPRIVATE(temp_sol_add)
+  REAL(r_std), ALLOCATABLE, SAVE, DIMENSION (:)   :: swe_max      !! Maximum snow water equivalent (kg/m2)
+!$OMP THREADPRIVATE(swe_max)
 CONTAINS
 
 !!  =============================================================================================================================
@@ -472,7 +474,7 @@ CONTAINS
          drysoil_frac, height, snowdz,snowrho, tot_bare_soil, &
          temp_air, pb, u, v, lai, &
          emis, albedo, z0m, z0h, roughheight, &
-         frac_snow_veg,frac_snow_nobio, zstd_not_filtered, precip_snow)
+         frac_snow_veg,frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
     !! 1.10 Initialization of soil thermodynamics
 
@@ -782,7 +784,7 @@ CONTAINS
          drysoil_frac, height, snowdz, snowrho, tot_bare_soil, &
          temp_air, pb, u, v, lai, &
          emis, albedo, z0m, z0h, roughheight, &
-         frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow)
+         frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
     !! 7. Compute soil thermodynamics
     IF (hydrol_cwrr) THEN
@@ -1842,6 +1844,9 @@ CONTAINS
     ALLOCATE (frac_snow_veg(kjpindex),stat=ier)
     IF (ier /= 0) CALL ipslerr_p(3,'sechiba_init','Pb in alloc for frac_snow_veg','','')
 
+    ALLOCATE (swe_max(kjpindex),stat=ier)
+    IF (ier /= 0) CALL ipslerr_p(3,'sechiba_init','Pb in alloc for swe_max','','')
+
     ALLOCATE (frac_snow_nobio(kjpindex,nnobio),stat=ier)
     IF (ier /= 0) CALL ipslerr_p(3,'sechiba_init','Pb in alloc for frac_snow_nobio','','')
 
@@ -2025,6 +2030,7 @@ CONTAINS
     IF ( ALLOCATED (rveget)) DEALLOCATE (rveget)
     IF ( ALLOCATED (rstruct)) DEALLOCATE (rstruct)
     IF ( ALLOCATED (frac_snow_veg)) DEALLOCATE (frac_snow_veg)
+    IF ( ALLOCATED (swe_max)) DEALLOCATE (swe_max)
     IF ( ALLOCATED (frac_snow_nobio)) DEALLOCATE (frac_snow_nobio)
     IF ( ALLOCATED (snowrho)) DEALLOCATE (snowrho)
     IF ( ALLOCATED (snowgrain)) DEALLOCATE (snowgrain)

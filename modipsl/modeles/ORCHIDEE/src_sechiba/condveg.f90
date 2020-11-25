@@ -143,9 +143,12 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: z0m              !! Roughness for momentum (m)
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: z0h              !! Roughness for heat (m)
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: roughheight      !! Effective height for roughness
-    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
     REAL(r_std),DIMENSION (kjpindex,nnobio), INTENT(out):: frac_snow_nobio  !! Snow cover fraction on non-vegeted area
-    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
+
+    ! 0.3 InOut variables
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
+
 
     !! 0.4 Local variables
     INTEGER                                          :: ier
@@ -258,6 +261,21 @@ CONTAINS
 
 
     !! 3. Calculate the fraction of snow on vegetation and nobio
+
+    ! Read from restart file
+
+    ! swe_max for Swenson and Lawrence, 2012 SCF parameterization
+    CALL ioconf_setatt_p('UNITS', 'kg/m2')
+    CALL ioconf_setatt_p('LONG_NAME','Maximum Snow Water Equivalent')
+    CALL restget_p (rest_id, 'swe_max', nbp_glo, 1, 1, kjit, .TRUE., swe_max, "gather", nbp_glo, index_g)
+    CALL setvar_p (swe_max, val_exp, 'Maximum Snow Water Equivalent', 0.)
+
+    ! frac_snow_veg for Swenson and Lawrence, 2012 SCF parameterization
+    CALL ioconf_setatt_p('UNITS', '-')
+    CALL ioconf_setatt_p('LONG_NAME','Snow cover fraction on vegeted area')
+    CALL restget_p (rest_id, 'frac_snow_veg', nbp_glo, 1, 1, kjit, .TRUE., frac_snow_veg, "gather", nbp_glo, index_g)
+    CALL setvar_p (frac_snow_veg, val_exp, 'Snow cover fraction on vegeted area', 0.)
+
     CALL condveg_frac_snow(kjpindex, snow, snow_nobio, snowrho, snowdz, &
                            frac_snow_veg, frac_snow_nobio, zstd_not_filtered, precip_snow, swe_max)
 
@@ -367,11 +385,12 @@ CONTAINS
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: z0m              !! Roughness for momentum (m)
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: z0h              !! Roughness for heat (m)
     REAL(r_std),DIMENSION (kjpindex), INTENT (out)   :: roughheight      !! Effective height for roughness
-    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
-    REAL(r_std),DIMENSION (kjpindex), INTENT(out)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
     REAL(r_std),DIMENSION (kjpindex,nnobio), INTENT(out):: frac_snow_nobio  !! Snow cover fraction on non-vegeted area
 
     !! 0.3 Modified variables
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)    :: swe_max          !! Maximum snow water equivalent (kg/m2)
+    REAL(r_std),DIMENSION (kjpindex), INTENT(inout)    :: frac_snow_veg    !! Snow cover fraction on vegeted area
+
 
     !! 0.4 Local variables
     REAL(r_std), DIMENSION(kjpindex,2)               :: albedo_snow      !! Snow albedo (unitless ratio)
@@ -483,7 +502,7 @@ CONTAINS
   !! FLOWCHART                              : None
   !! \n
   !_ ==============================================================================================================================
-  SUBROUTINE condveg_finalize (kjit, kjpindex, rest_id, z0m, z0h, roughheight)
+  SUBROUTINE condveg_finalize (kjit, kjpindex, rest_id, z0m, z0h, roughheight, swe_max, frac_snow_veg)
 
     !! 0. Variable and parameter declaration
     !! 0.1 Input variables
@@ -493,6 +512,8 @@ CONTAINS
     REAL(r_std),DIMENSION(kjpindex), INTENT(in) :: z0m              !! Roughness for momentum
     REAL(r_std),DIMENSION(kjpindex), INTENT(in) :: z0h              !! Roughness for heat
     REAL(r_std),DIMENSION(kjpindex), INTENT(in) :: roughheight      !! Grid effective roughness height (m)
+    REAL(r_std),DIMENSION(kjpindex), INTENT(in) :: swe_max          !! Maximum snow water equivalent (kg/m2)
+    REAL(r_std),DIMENSION(kjpindex), INTENT(in) :: frac_snow_veg    !! Snow cover fraction on vegeted area
 
     !_ ================================================================================================================================
 
@@ -507,6 +528,12 @@ CONTAINS
        CALL restput_p (rest_id, 'soilalbedo_wet', nbp_glo, 2, 1, kjit, soilalb_wet, 'scatter',  nbp_glo, index_g)
        CALL restput_p (rest_id, 'soilalbedo_moy', nbp_glo, 2, 1, kjit, soilalb_moy, 'scatter',  nbp_glo, index_g)
     END IF
+
+    IF ( ok_explicitsnow ) THEN
+      CALL restput_p (rest_id, 'swe_max'      , nbp_glo, 1, 1, kjit, swe_max      , 'scatter', nbp_glo, index_g)
+      CALL restput_p (rest_id, 'frac_snow_veg', nbp_glo, 1, 1, kjit, frac_snow_veg, 'scatter', nbp_glo, index_g)
+    END IF
+
   END SUBROUTINE condveg_finalize
 
 !! ==============================================================================================================================

@@ -972,6 +972,7 @@ CONTAINS
 
     CALL xios_orchidee_send_field("frac_snow", SUM(frac_snow_nobio,2)*totfrac_nobio+frac_snow_veg*(1-totfrac_nobio))
     CALL xios_orchidee_send_field("frac_snow_veg", frac_snow_veg)
+    CALL xios_orchidee_send_field("swe_max", swe_max)
     CALL xios_orchidee_send_field("frac_snow_nobio", frac_snow_nobio)
     CALL xios_orchidee_send_field("reinf_slope",reinf_slope)
     CALL xios_orchidee_send_field("njsc",REAL(njsc, r_std))
@@ -1166,9 +1167,10 @@ CONTAINS
           CALL histwrite_p(hist_id, 'snowrho', kjit,snowrho,kjpindex*nsnow,indexsnow)
           CALL histwrite_p(hist_id, 'snowgrain',kjit,snowgrain,kjpindex*nsnow,indexsnow)
           CALL histwrite_p(hist_id, 'snowheat',kjit,snowheat,kjpindex*nsnow,indexsnow)
+          CALL histwrite_p(hist_id, 'swe_max',kjit,swe_max,kjpindex,index)
        END IF
 
-       CALL histwrite_p(hist_id,'frac_snow_veg',kjit,frac_snow_veg,kjpindex,index)
+       CALL histwrite_p(hist_id, 'frac_snow_veg',kjit,frac_snow_veg,kjpindex,index)
        CALL histwrite_p(hist_id, 'frac_snow_nobio', kjit,frac_snow_nobio,kjpindex*nnobio, indexnobio)
        CALL histwrite_p(hist_id, 'pgflux',kjit,pgflux,kjpindex,index)
        CALL histwrite_p(hist_id, 'soiltile',  kjit, soiltile, kjpindex*nstm, indexsoil)
@@ -1437,7 +1439,7 @@ CONTAINS
     ENDIF
 
     !! 4. Call condveg to write surface variables to restart files
-    CALL condveg_finalize (kjit, kjpindex, rest_id, z0m, z0h, roughheight)
+    CALL condveg_finalize (kjit, kjpindex, rest_id, z0m, z0h, roughheight, swe_max, frac_snow_veg)
 
     !! 5. Call soil thermodynamic to write restart files
     IF (hydrol_cwrr) THEN

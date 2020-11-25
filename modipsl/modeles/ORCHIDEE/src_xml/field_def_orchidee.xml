@@ -36,7 +36,7 @@
     <!-- Set snowtemp=273 where no information found on source grid, for all other points normlize with the fracion of underlaying source grid cells  -->
     <field id="snowtemp_interp" field_ref="snowtemp_tmp" read_access="true" > (mask_snow_interp &lt; 1e-4) ? 273 : this/(mask_snow_interp+1e-100) </field>
   </field_group>
- 
+
 
   <!-- ========================================================================================================= -->
   <!-- Definition of output variables in sechiba                                                                 -->
@@ -117,6 +117,7 @@
     <field id="snowage_glob" name="snowage_glob" long_name="Snow age on total area including snow on vegetated and bare soil and nobio area" unit="d"/>
     <field id="frac_snow" name="frac_snow" long_name="Snow fraction on total area including snow on vegetated and bare soil and nobio area" unit="%" > this*100 </field>
     <field id="frac_snow_veg" name="frac_snow_veg" long_name="Snow fraction on vegetated area" unit="1"/>
+    <field id="swe_max" name="swe_max" long_name="Maximum Snow Water Equivalent" unit="kg/m^2"/>
     <field id="frac_snow_nobio" name="frac_snow_nobio" long_name="Snow fraction on nobio area" unit="1" grid_ref="grid_nnobio"/>
     <field id="vegetfrac" name="vegetfrac" long_name="Fraction of vegetation" unit="1" grid_ref="grid_nvm"/>
     <field id="maxvegetfrac" name="maxvegetfrac" long_name="Maximum fraction of vegetation" unit="1" grid_ref="grid_nvm"/>
@@ -175,7 +176,7 @@
     <field id="rveget" name="rveget" long_name="Canopy resistance" unit="s/m" grid_ref="grid_nvm"/>
     <field id="rsol" name="rsol" long_name="Soil resistance" unit="s/m"/>
     <field id="vbeta2" name="vbeta2" long_name="Beta for Interception loss" unit="mm/d" grid_ref="grid_nvm"/>
-    <field id="qsintveg_tot" name="CanopInt" long_name="Water on canopy (grid-cell total)" unit="Kg/m^2"/>  
+    <field id="qsintveg_tot" name="CanopInt" long_name="Water on canopy (grid-cell total)" unit="Kg/m^2"/>
     <field id="qsintveg" name="qsintveg" long_name="Water on canopy per PFT" unit="Kg/m^2" grid_ref="grid_nvm"/>
     <field id="qsintmax" name="qsintmax" long_name="Maximum Interception capacity per PFT" unit="Kg/m^2" grid_ref="grid_nvm"/>
     <field id="prveg" name="prveg" long_name="Rainfall interception by canopy" unit="kg m-2 s-1"/>
@@ -239,27 +240,27 @@
     <field id="fco2" name="fco2" long_name="Function for CO2 impact on BVOC (isoprene)" unit="1" grid_ref="grid_nvm" />
     <field id="cim" name="cim" long_name="Intercellular CO2 over nlai" unit="ppm" grid_ref="grid_nvm" enabled=".FALSE." />
     <field id="pb" name="Psurf" long_name="Surface pressure" unit="Pa" > this*100.0 </field>
-    <field id="slowflow" name="Qb" long_name="Slowflow hydrographs of gridbox outflow" unit="m^3/s"/> 
+    <field id="slowflow" name="Qb" long_name="Slowflow hydrographs of gridbox outflow" unit="m^3/s"/>
     <field id="LAImean" name="LAImean" long_name="Mean Leaf Area Index (mean over the area covered by PFTs, incl. PFT=1)" unit="1"/>
-    <field id="mcs" name="SoilSat" long_name="Mean volumetric water content at saturation" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/>   
-    <field id="nroot" name="RootDist" long_name="Cumulative root density (grid-cell average)" unit="1"  grid_ref="grid_nslm" operation="once"/>   
-    <field id="dlh" name="SoilThick" long_name="Hydrological soil layer thickness" unit="m"  grid_ref="grid_nslm" operation="once"/>   
-    <field id="water2infilt" name="water2infilt" long_name="Storage of surface runoff kept for future infiltration(already included in humtot)" unit="Kg/m^2" grid_ref="grid_nstm"/>  
-    <field id="pkappa" name="pkappa" long_name="Soil thermal conductivity" unit="W/m/K" grid_ref="grid_ngrnd"/>  
-    <field id="pkappa_snow" name="pkappa_snow" long_name="Snow thermal conductivity" unit="W/m/K" grid_ref="grid_nsnow"/>  
-    <field id="pcapa" name="pcapa" long_name="Volumetric soil heat capacity" unit="J/m^3/K" grid_ref="grid_ngrnd"/>   
-    <field id="pcapa_spec" name="pcapa_spec" long_name="Specific soil heat capacity" unit="J/kg/K" grid_ref="grid_ngrnd"/>  
-    <field id="pcapa_snow" name="pcapa_snow" long_name="Snow heat capacity" unit="J/m^3/K" grid_ref="grid_nsnow"/>  
-    <field id="snowtemp" name="snowtemp" long_name="snow temperature" unit="K" grid_ref="grid_nsnow"/>  
-    <field id="snowtemp_weighted" name="snowtemp_weighted" long_name="mean snow temperature weighted by snow density" unit="K"/>  
-    <field id="snowliq" name="snowliq" long_name="Snow liquid content where land" unit="kg/m^2" grid_ref="grid_nsnow"/>  
-    <field id="snowliqtot" name="snowliqtot" long_name="Snow liquid content integrated over snow depth where land" unit="kg/m^2"/>  
-    <field id="snowdz" name="snowdz" long_name="Snow layer thickness in the snow fraction" unit="m" grid_ref="grid_nsnow"/>  
-    <field id="snowdepth" name="snowdepth" long_name="Total snow thickness (averaging over the entire land portion, including the snow-free fraction)" unit="m"/>  
-    <field id="snowrho" name="snowrho" long_name="Snow denisty" unit="Kg/m^3" grid_ref="grid_nsnow"/>  
-    <field id="snowheat" name="snowheat" long_name="Snow heat content" unit="J/m^2" grid_ref="grid_nsnow"/>  
-    <field id="del_snowheattot" name="del_snowheattot" long_name="Variation of Snow heat content integrated over snow depth" unit="J/m^2"/>  
-    <field id="snowgrain" name="snowgrain" long_name="Snow grain size" unit="m" grid_ref="grid_nsnow"/>  
+    <field id="mcs" name="SoilSat" long_name="Mean volumetric water content at saturation" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/>
+    <field id="nroot" name="RootDist" long_name="Cumulative root density (grid-cell average)" unit="1"  grid_ref="grid_nslm" operation="once"/>
+    <field id="dlh" name="SoilThick" long_name="Hydrological soil layer thickness" unit="m"  grid_ref="grid_nslm" operation="once"/>
+    <field id="water2infilt" name="water2infilt" long_name="Storage of surface runoff kept for future infiltration(already included in humtot)" unit="Kg/m^2" grid_ref="grid_nstm"/>
+    <field id="pkappa" name="pkappa" long_name="Soil thermal conductivity" unit="W/m/K" grid_ref="grid_ngrnd"/>
+    <field id="pkappa_snow" name="pkappa_snow" long_name="Snow thermal conductivity" unit="W/m/K" grid_ref="grid_nsnow"/>
+    <field id="pcapa" name="pcapa" long_name="Volumetric soil heat capacity" unit="J/m^3/K" grid_ref="grid_ngrnd"/>
+    <field id="pcapa_spec" name="pcapa_spec" long_name="Specific soil heat capacity" unit="J/kg/K" grid_ref="grid_ngrnd"/>
+    <field id="pcapa_snow" name="pcapa_snow" long_name="Snow heat capacity" unit="J/m^3/K" grid_ref="grid_nsnow"/>
+    <field id="snowtemp" name="snowtemp" long_name="snow temperature" unit="K" grid_ref="grid_nsnow"/>
+    <field id="snowtemp_weighted" name="snowtemp_weighted" long_name="mean snow temperature weighted by snow density" unit="K"/>
+    <field id="snowliq" name="snowliq" long_name="Snow liquid content where land" unit="kg/m^2" grid_ref="grid_nsnow"/>
+    <field id="snowliqtot" name="snowliqtot" long_name="Snow liquid content integrated over snow depth where land" unit="kg/m^2"/>
+    <field id="snowdz" name="snowdz" long_name="Snow layer thickness in the snow fraction" unit="m" grid_ref="grid_nsnow"/>
+    <field id="snowdepth" name="snowdepth" long_name="Total snow thickness (averaging over the entire land portion, including the snow-free fraction)" unit="m"/>
+    <field id="snowrho" name="snowrho" long_name="Snow denisty" unit="Kg/m^3" grid_ref="grid_nsnow"/>
+    <field id="snowheat" name="snowheat" long_name="Snow heat content" unit="J/m^2" grid_ref="grid_nsnow"/>
+    <field id="del_snowheattot" name="del_snowheattot" long_name="Variation of Snow heat content integrated over snow depth" unit="J/m^2"/>
+    <field id="snowgrain" name="snowgrain" long_name="Snow grain size" unit="m" grid_ref="grid_nsnow"/>
     <field id="snowflxtot" name="snowflxtot" long_name="Total snow flux (including snow on vegetated and bare soil and nobio areas)" unit="W/m^2"/>
 
     <!-- Routing -->
@@ -294,10 +295,10 @@
     <field id="delpondr_daily" field_ref="delpondr"  name="delpondr_daily" long_name="Mean of storage change for ponds reservoir accumulated over each day" freq_op="1d" unit="kg/m^2/d" operation="average" > @delpondr </field>
     <field id="delfloodr" name="delfloodr" long_name="Accumulated storage change for floodplains reservoir" unit="kg/m^2" operation="accumulate" />
     <field id="delfloodr_daily" field_ref="delfloodr" name="delfloodr_daily" long_name="Mean of storage change for floodplains reservoir accumulated over each day" unit="kg/m^2/d" freq_op="1d" operation="average" > @delfloodr </field>
-    <field id="delstock_routing" name="delstock_routing" long_name="Mean of storage change in all routing reservoirs accumulated each day" unit="kg/m^2"> delstreamr_daily + delfastr_daily + delslowr_daily + delfloodr_daily + delpondr_daily + dellaker_daily </field> 
-    <field id="delriv" name="delriv" long_name="Change in River Storage (sum of stream and fast reservoirs)" unit="kg/m^2"> delstreamr + delfastr </field> 
-    <field id="delsurfwater" name="delsurfwater" long_name="Change in surface water storage (sum of stream, fast, floodplains, lakes and ponds reservoirs)" unit="kg/m^2"> delstreamr + delfastr + delfloodr + dellaker + delpondr </field> 
-    <field id="surfwater" name="surfwater" long_name="Surface water storage (sum of stream, fast, floodplains, lakes and ponds reservoirs)" unit="kg/m^2"> streamr + fastr + floodr + laker + pondr </field> 
+    <field id="delstock_routing" name="delstock_routing" long_name="Mean of storage change in all routing reservoirs accumulated each day" unit="kg/m^2"> delstreamr_daily + delfastr_daily + delslowr_daily + delfloodr_daily + delpondr_daily + dellaker_daily </field>
+    <field id="delriv" name="delriv" long_name="Change in River Storage (sum of stream and fast reservoirs)" unit="kg/m^2"> delstreamr + delfastr </field>
+    <field id="delsurfwater" name="delsurfwater" long_name="Change in surface water storage (sum of stream, fast, floodplains, lakes and ponds reservoirs)" unit="kg/m^2"> delstreamr + delfastr + delfloodr + dellaker + delpondr </field>
+    <field id="surfwater" name="surfwater" long_name="Surface water storage (sum of stream, fast, floodplains, lakes and ponds reservoirs)" unit="kg/m^2"> streamr + fastr + floodr + laker + pondr </field>
     <field id="wbr_fast" name="wbr_fast" long_name="Water budget residu of the fast reservoir" unit="kg/m^2/s"/>
     <field id="wbr_slow" name="wbr_slow" long_name="Water budget residu of the slow reservoir" unit="kg/m^2/s"/>
     <field id="wbr_stream" name="wbr_stream" long_name="Water budget residu of the stream reservoir" unit="kg/m^2/s"/>
@@ -355,13 +356,13 @@
     <field id="mask_snow_interp_out" long_name="Mask read from file" operation="once" unit="1" grid_ref="grid_nsnow"/>
     <field id="nudgincsm" name="nudgincsm" long_name="Nudging increment of water in soil moisture" unit="Kg/m^2"/>
     <field id="nudgincswe" name="nudgincswe" long_name="Nudging increment of water in snow" unit="kg/m^2"/>
-    <field id="cnc" name="cnc" long_name="Canopy covered area percentage (fraction of total land)" unit="%"/> 
+    <field id="cnc" name="cnc" long_name="Canopy covered area percentage (fraction of total land)" unit="%"/>
     <field id="mcfc" name="mcfc" long_name="Mean volumetric water content at field capacity (total land average)" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/>
-    <field id="mcw" name="mcw" long_name="Mean volumetric water content at wilting point (total land average)" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/> 
-    <field id="mcr" name="mcr" long_name="Mean volumetric residual water content (total land average)" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/> 
+    <field id="mcw" name="mcw" long_name="Mean volumetric water content at wilting point (total land average)" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/>
+    <field id="mcr" name="mcr" long_name="Mean volumetric residual water content (total land average)" unit="m^3/m^3" grid_ref="grid_nslm" operation="once"/>
     <field id="tmcs" name="tmcs" long_name="Total soil moisture at saturation (total land average)" unit="kg/m^2" operation="once"/>
     <field id="tmcfc" name="tmcfc" long_name="Total soil moisture at field capacity (total land average)" unit="kg/m^2" operation="once"/>
-    <field id="wilt" name="wilt" long_name="Wilting point (in % of soil volume)" unit="%" grid_ref="grid_nslm" operation="once" > mcw*100 </field>  
+    <field id="wilt" name="wilt" long_name="Wilting point (in % of soil volume)" unit="%" grid_ref="grid_nslm" operation="once" > mcw*100 </field>
     <field id="fldcapacity" name="fldcapacity" long_name="Field capacity (in % of soil volume)" grid_ref="grid_nslm" unit="%" operation="once" > mcfc*100 </field>
     <field id="ksat" name="ksat" long_name="Saturated Hydraulic conductivity (at each hydrologic node)" unit="10^(-6) m/s" grid_ref="grid_nslm" operation="once" > this*1000/86400 </field>
     <field id="alphavg" name="alphavg" long_name="Van Genuchten alpha parameter (at each hydrologic node)" unit="m(-1)" grid_ref="grid_nslm" operation="once"/>
@@ -512,8 +513,8 @@
     <field id="raTree" name="raTree" long_name="Autotrophic Respiration on tree tiles (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="npp_ipcc" name="npp" long_name="Net Primary Production (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="rh" name="rh" long_name="Heterotrophic Respiration (positive from atm to land)" unit="kg C m-2 s-1"/>
-    <field id="rhSoil" name="rhSoil" long_name="Carbon mass flux due to heterotrophic respiration from soil on land (positive from land to atm)" unit="kg C m-2 s-1" /> 
-    <field id="rhLitter" name="rhLitter" long_name="Carbon mass flux due to heterotrophic respiration from litter on land (positive from land to atm)" unit="kg C m-2 s-1" /> 
+    <field id="rhSoil" name="rhSoil" long_name="Carbon mass flux due to heterotrophic respiration from soil on land (positive from land to atm)" unit="kg C m-2 s-1" />
+    <field id="rhLitter" name="rhLitter" long_name="Carbon mass flux due to heterotrophic respiration from litter on land (positive from land to atm)" unit="kg C m-2 s-1" />
     <field id="tSoilPools" name="tSoilPools" long_name="soil_carbon_turnover_rate : defined as 1/(turnover time) for soil pools." unit="s-1" grid_ref="grid_ncarb"/>
     <field id="fFire" name="fFire" long_name="CO2 Emission from Fire (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="fHarvest" name="fHarvest" long_name="CO2 Flux to Atmosphere from Crop Harvesting (positive from atm to land)" unit="kg C m-2 s-1"/>
@@ -542,8 +543,8 @@
     <field id="c4PftFrac" name="c4PftFrac" long_name="Total C4 PFT Cover Fraction" unit="%"/>
     <field id="rGrowth" name="rGrowth" long_name="Growth Autotrophic Respiration (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="rMaint" name="rMaint" long_name="Maintenance Autotrophic Respiration (positive from atm to land)" unit="kg C m-2 s-1"/>
-    <field id="rGrowth_ipcc" name="rGrowth_ipcc" long_name="Growth Autotrophic Respiration (positive from land to atm)" unit="kg C m-2 s-1" > rGrowth*(-1) </field> 
-    <field id="rMaint_ipcc" name="rMaint_ipcc" long_name="Maintenance Autotrophic Respiration (positive from land to atm)" unit="kg C m-2 s-1" > rMaint*(-1) </field> 
+    <field id="rGrowth_ipcc" name="rGrowth_ipcc" long_name="Growth Autotrophic Respiration (positive from land to atm)" unit="kg C m-2 s-1" > rGrowth*(-1) </field>
+    <field id="rMaint_ipcc" name="rMaint_ipcc" long_name="Maintenance Autotrophic Respiration (positive from land to atm)" unit="kg C m-2 s-1" > rMaint*(-1) </field>
     <field id="nppLeaf" name="nppLeaf" long_name="CO2 Flux from Atmosphere due to NPP Allocation to Leaf (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="nppWood" name="nppWood" long_name="CO2 Flux from Atmosphere due to NPP Allocation to Wood (above and below surface) (positive from atm to land)" unit="kg C m-2 s-1"/>
     <field id="nppStem" name="nppStem" long_name="CO2 Flux from Atmosphere due to NPP Allocation to Stem (above surface) (positive from atm to land)" unit="kg C m-2 s-1"/>
@@ -566,7 +567,7 @@
     <field id="dr_force" name="Qforce" long_name="Adjustement flux added to drainage to sustain a forced water table depth" unit="kg/m^2/s"/>
     <field id="ru_infilt" name="Qs_infilt" long_name="Surface runoff from hydrol_soil_infilt" unit="kg/m^2/s"/>
     <field id="qinfilt" name="Infilt" long_name="Infiltration flux" unit="kg/m^2/s"/>
-    
+
     <field id="clitterlut" name="cLitterLut" long_name="Carbon in above and belowground litter pools on land use tiles" unit="kg C m-2" grid_ref="grid_nlut"/>
     <field id="csoillut" name="cSoilLut" long_name="Carbon in soil pool on land use tiles"  unit="kg C m-2" grid_ref="grid_nlut"/>
     <field id="cveglut" name="cvegLut" long_name="Carbon in vegetation on land use tiles"  unit="kg C m-2" grid_ref="grid_nlut"/>
@@ -599,4 +600,3 @@
   <field id="vegetmax_soil" name="vegetsoil" long_name="PFT fraction for soil tiles" unit="1" grid_ref="grid_nvm_nstm"/>
 
 </field_definition>
-

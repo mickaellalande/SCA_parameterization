@@ -933,7 +933,9 @@ CONTAINS
           !!!!!!!!!!!!!!!!!!!!!!
           WHERE (precip_snow(:) > min_sechiba)
             ! Compute the SCF
-            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.26 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
+            ! frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.26 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
+            ! frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.1 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12
+            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.022 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12-opti
 
             WHERE (frac_snow_veg(:) > 1e-7)
               ! Update SWE_max for fitting with the depletion curve

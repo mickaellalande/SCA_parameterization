@@ -911,7 +911,9 @@ CONTAINS
 
        ! Initialization for Swenson and Lawrence parameterization
        swe = 0.
-       N_melt(:) = 200. / max(30., zstd_not_filtered(:)) ! eq. (5) in SL12 (modified)
+       ! N_melt(:) = 200. / max(30., zstd_not_filtered(:)) ! eq. (5) in SL12 (modified)
+       N_melt(:) = 200. / max(10., zstd_not_filtered(:)) ! eq. (5) in SL12
+       ! N_melt(:) = 200. / max(10., 1000.*zstd_not_filtered(:)**0.2) ! eq. (5) in SL12-opti2
 
        ! min_sechiba = 1e-8
        WHERE(snowdepth(:) < min_sechiba)
@@ -934,8 +936,8 @@ CONTAINS
           WHERE (precip_snow(:) > min_sechiba)
             ! Compute the SCF
             ! frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.26 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! eq. (3) in SL12
-            ! frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.1 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12
-            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.022 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12-opti
+            frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.1 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12
+            ! frac_snow_veg(:) = 1. - ( 1. - MIN(1., 0.022 * precip_snow(:)) ) * ( 1. - frac_snow_veg(:) ) ! SL12-opti
 
             WHERE (frac_snow_veg(:) > 1e-7)
               ! Update SWE_max for fitting with the depletion curve

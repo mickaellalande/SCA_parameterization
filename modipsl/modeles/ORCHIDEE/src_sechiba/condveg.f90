@@ -875,13 +875,16 @@ CONTAINS
           snowrho_ave(:)=snowrho_snowdz(:)/snowdepth(:)
 
           ! LMDZOR-STD-NY07
-          ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)/50.)))
+          frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)/50.)))
 
           ! LMDZOR-STD-LA22
           ! frac_snow_veg(:) = tanh(snowdepth(:)/( 0.025*(snowrho_ave(:)/50.) + 3e-6*zstd_not_filtered(:)*(snowrho_ave(:)/50.)**3 ))
 
           ! LMDZOR-STD-NY07-CUSTOM-200
           ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)*(1+zstd_not_filtered(:)/200.)/50.)))
+
+          ! LMDZOR-STD-NY07-opti
+          ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.6*0.01*(snowrho_ave(:)/50.)**2.5))
 
           !!!!!!!!!!!!!!!!!!!!!!!!
           ! Roesch et al. (2001) !
@@ -893,8 +896,8 @@ CONTAINS
           ! frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * SQRT( 1000.*swe(:) / (1000.*swe(:) + 1e-6 + 0.15 * zstd_not_filtered(:)) )
 
           ! LMDZOR-STD-R01-opti
-          swe(:) = (snowdepth(:) * snowrho_ave(:)) / 1000. ! to get swe in meter as in R01 paper
-          frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * ( 1000.*swe(:) / (1000.*swe(:) + 1e-6 + 1.15 * zstd_not_filtered(:)) )**0.3
+          ! swe(:) = (snowdepth(:) * snowrho_ave(:)) / 1000. ! to get swe in meter as in R01 paper
+          ! frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * ( 1000.*swe(:) / (1000.*swe(:) + 1e-6 + 1.15 * zstd_not_filtered(:)) )**0.3
 
        END WHERE
     ELSE

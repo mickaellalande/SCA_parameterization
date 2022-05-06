@@ -874,8 +874,11 @@ CONTAINS
        ELSEWHERE
           snowrho_ave(:)=snowrho_snowdz(:)/snowdepth(:)
 
-          ! LMDZOR-STD-REF
+          ! LMDZOR-STD-NY07
           ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)/50.)))
+
+          ! LMDZOR-STD-LA22
+          ! frac_snow_veg(:) = tanh(snowdepth(:)/( 0.025*(snowrho_ave(:)/50.) + 3e-6*zstd_not_filtered(:)*(snowrho_ave(:)/50.)**3 ))
 
           ! LMDZOR-STD-NY07-CUSTOM-200
           ! frac_snow_veg(:) = tanh(snowdepth(:)/(0.025*(snowrho_ave(:)*(1+zstd_not_filtered(:)/200.)/50.)))

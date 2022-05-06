@@ -862,7 +862,7 @@ CONTAINS
     REAL(r_std), DIMENSION(kjpindex)                    :: snowrho_ave     !! Average snow density
     REAL(r_std), DIMENSION(kjpindex)                    :: snowdepth       !! Snow depth
     REAL(r_std), DIMENSION(kjpindex)                    :: snowrho_snowdz  !! Snow rho time snowdz
-    REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (kg/m2)
+    REAL(r_std), DIMENSION(kjpindex)                    :: swe             !! Snow water equivalent (m)
     INTEGER(i_std)                                      :: jv
 
     !! Calculate snow cover fraction for both total vegetated and total non-vegetative surfaces.
@@ -889,8 +889,12 @@ CONTAINS
           ! https://link.springer.com/article/10.1007/s003820100153
 
           ! LMDZOR-STD-R01
-          swe(:) = snowdepth(:) * snowrho_ave(:)
-          frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * SQRT( swe(:) / (swe(:) + 1e-6 + 0.15 * zstd_not_filtered(:)) )
+          ! swe(:) = (snowdepth(:) * snowrho_ave(:)) / 1000. ! to get swe in meter as in R01 paper
+          ! frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * SQRT( 1000.*swe(:) / (1000.*swe(:) + 1e-6 + 0.15 * zstd_not_filtered(:)) )
+
+          ! LMDZOR-STD-R01-opti
+          swe(:) = (snowdepth(:) * snowrho_ave(:)) / 1000. ! to get swe in meter as in R01 paper
+          frac_snow_veg(:) = 0.95 * TANH( 100. * swe(:) ) * ( 1000.*swe(:) / (1000.*swe(:) + 1e-6 + 1.15 * zstd_not_filtered(:)) )**0.3
 
        END WHERE
     ELSE
